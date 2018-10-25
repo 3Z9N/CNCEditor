@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CNCEditor>
+  <MainForm WindowState="2" Left="-8" Top="-8" Width="1936" Height="1056"/>
+  <Panel1 Width="352"/>
+  <Panel2 Height="490"/>
+  <RecentFiles>
+    <File>I:\CNC_Editor_XML_2.0\Debug_Build\Mammut.cne</File>
+    <File>C:\Users\serwis\Documents\Borland Studio Projects-old\Mammut_NextMove_ESB_XML_0.2.6\Debug_Build\Mammut.cne</File>
+    <File>C:\Users\serwis\Documents\Borland Studio Projects\CNC_Editor_XML_1.6.2\Debug_Build\Mammut.cne</File>
+    <File>C:\Users\serwis\Documents\Borland Studio Projects\CNC_Editor_XML_1.6\Debug_Build\Mammut_4_2007_06_07.cne</File>
+    <File>I:\eclipse-workspace\cne_explode\programy\1-Caro - Step 60x80.cne</File>
+    <File>I:\627-Optidee - Romby z wałkiem 140x200 - 6x7.cne</File>
+    <File>I:\1539-Optidee - Romby z wałkiem 220x240 - 9x10.cne</File>
+    <File>I:\Optibot\programy\0-_test_Lama z rombami z wałkiem 155x220 - 5x5 - jedna.cne</File>
+    <File>I:\Optibot\programy\1625-Lama z rombami z wałkiem 155x220 - 5x5 - jedna.cne</File>
+    <File>I:\Optibot\programy\1634-Motyl z pasami z wałkiem 100x140.cne</File>
+    <File>I:\Optibot\programy\1635-Owca z pasami z wałkiem 100x140.cne</File>
+    <File>I:\Optibot\programy\1652-Koniczyna regularna 135x200.cne</File>
+    <File>I:\Optibot\programy\1006-Hela - Soft - poduszka 40x60.cne</File>
+    <File>I:\Optibot\programy\978-Edeldek 140x200.cne</File>
+    <File>I:\Optibot\programy\650-E z wiatrakami z wałkiem 135x200 - 3x4 .cne</File>
+    <File>I:\Optibot\programy\200-Owca z pasami z wałkiem 140x200.cne</File>
+    <File>I:\Optibot\programy\205-Pagórki poziome 140x200.cne</File>
+  </RecentFiles>
+</CNCEditor>
