@@ -15,12 +15,11 @@
 #include <Registry.hpp>
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
-//#pragma link "TXPanel"
 #pragma resource "*.dfm"
 TCNCDesigner *CNCDesigner;
 
 //-------------------------------
-// zmienne statyczne
+// static variables
 //-------------------------------
 bool TCNCDesigner::grid = true;
 bool TCNCDesigner::ruler = true;
@@ -29,14 +28,12 @@ bool TCNCDesigner::drv_path = true;
 
 
 #define Round(x) RoundTo((x),0)
-//#define RadToDeg(x) (((x)*180)/M_PI)
-//#define DegToRad(x) (((x)*M_PI)/180)
 
 std::vector<TGCod*> copy_list;
 std::vector<TGCod*> drag_list;
 
 //-------------------------------
-// standard colors
+// standard colors for OpenGL
 //-------------------------------
 const float CL_RED[3]    = {1.0, 0.0, 0.0};
 const float CL_GREEN[3]  = {0.0, 1.0, 0.0};
@@ -46,12 +43,10 @@ const float CL_CYAN[3]   = {0.0, 1.0, 1.0};
 const float CL_WHITE[3]  = {1.0, 1.0, 1.0};
 const float CL_BLACK[3]  = {0.0, 0.0, 0.0};
 
-
-//---------------------------------------------------------------------------
-//---------------------------------------------------------------------------
-//---------------------------------------------------------------------------
 typedef std::vector<std::string> array;
 
+//---------------------------------------------------------------------------
+/// splits std c string to std::vector<std::string> with separator
 array explode(const char* s, char separator)
 {
   array v;
@@ -79,8 +74,7 @@ array explode(const char* s, char separator)
   return v;
 }
 //---------------------------------------------------------------------------
-//---------------------------------------------------------------------------
-//---------------------------------------------------------------------------
+// Constructor
 __fastcall TCNCDesigner::TCNCDesigner(TComponent* Owner)
 	: TFrame(Owner)
 {
@@ -124,43 +118,28 @@ __fastcall TCNCDesigner::TCNCDesigner(TComponent* Owner)
   XPanel->OnStartDrag = this->XPanelStartDrag;
   XPanel->OnPaint = this->XPanelPaint;
 }
-/*
 //---------------------------------------------------------------------------
-namespace Tcncdesigner
-{
-	void __fastcall PACKAGE Register()
-	{
-		TComponentClass classes[1] = {__classid(TCNCDesigner)};
-		RegisterComponents("KP_Components", classes, 0);
-	}
-}
-*/
-//---------------------------------------------------------------------------
+/// Move program to X=0, Y=0 coordinates
 void __fastcall TCNCDesigner::MoveToZero()
 {
 	if(!Program) return;
 	Program->SaveUndo();
 	for(int i=0; i<Program->Codes->Count; i++) {
 		TGCod *cod = (TGCod*)Program->Codes->Items[i];
-		//if(cod->State == csSelected) {
 		cod->X = (cod->X - min_x);
 		cod->Y = (cod->Y - min_y);
 		if(cod->X < 0) cod->X = 0;
 		if(cod->Y < 0) cod->Y = 0;
-		//cod->UpdateOXY();
-		//if(cod->Next) cod->Next->UpdateOXY();
-		//}
 	}
 	for(int i=0; i<Program->Codes->Count; i++) {
 		TGCod *cod = (TGCod*)Program->Codes->Items[i];
-		//if(cod->State == csSelected) {
 		cod->UpdateOXY();
-		//}
 	}
 	SetModified(true);
   	Render();
 }
 //---------------------------------------------------------------------------
+/// Rescal program
 void __fastcall TCNCDesigner::Rescale()
 {
 	if(!Program) return;
@@ -201,6 +180,7 @@ void __fastcall TCNCDesigner::Rescale()
 	Render();
 }
 //---------------------------------------------------------------------------
+/// Add new cod
 void __fastcall TCNCDesigner::AddCod(TGCod *cod)
 {
   if(!cod) return;
@@ -216,10 +196,11 @@ void __fastcall TCNCDesigner::AddCod(TGCod *cod)
   cod->UpdateOXY();
 }
 //---------------------------------------------------------------------------
+/// Copy selected codes to clipboard
 void __fastcall TCNCDesigner::Copy()
 {
   if(!Program) return;
-  char buf[65536]; //[1024];
+  char buf[65536];
   sprintf(buf, "CNCEditor|%s|%d|%d;", Program->Name.c_str(),
 		  Program->Number, Program->Frame);
   AnsiString Line = buf;
@@ -236,10 +217,11 @@ void __fastcall TCNCDesigner::Copy()
   Clipboard()->Close();
 }
 //---------------------------------------------------------------------------
+/// Copy program to clipboard
 void __fastcall TCNCDesigner::CopyProgramToClipboard(TProgram *Prog)
 {
   if(!Prog) return;
-  char buf[65536]; //[1024];
+  char buf[65536];
   sprintf(buf, "CNCEditor|%s|%d|%d;", Prog->Name.c_str(),
 		  Prog->Number, Prog->Frame);
   AnsiString Line = buf;
@@ -255,6 +237,7 @@ void __fastcall TCNCDesigner::CopyProgramToClipboard(TProgram *Prog)
   Clipboard()->Close();
 }
 //---------------------------------------------------------------------------
+/// Creates 2D font for OpenGL
 TGLFont2D * __fastcall TCNCDesigner::CreateFont2D(TFont *Font,
 												  int FirstGylph,
 												  int NumGylph)
@@ -270,17 +253,14 @@ TGLFont2D * __fastcall TCNCDesigner::CreateFont2D(TFont *Font,
   Font2D->NumGylph=NumGylph;
   Font2D->ListBase=Base;
   GetObject(Font->Handle,sizeof(LOGFONT),&LogFont);
-  //  FYI To go from LogFont -> Handle use:
-  //  Font->Handle =CreateFontIndirect(LogFont);
   HFont = CreateFontIndirect(&LogFont);
-  //SelectObject (DisplayDeviceContext, HFont);
-  //wglUseFontBitmaps(DisplayDeviceContext, FirstGylph, NumGylph, Base);
   SelectObject (hdc, HFont);
   wglUseFontBitmaps(hdc, FirstGylph, NumGylph, Base);
   DeleteObject(HFont);
   return(Font2D);
 }
 //---------------------------------------------------------------------------
+/// Delete selected codes
 void __fastcall TCNCDesigner::Delete()
 {
   if(!Program) return;
@@ -297,6 +277,7 @@ void __fastcall TCNCDesigner::Delete()
   Render();
 }
 //---------------------------------------------------------------------------
+/// Delete cod
 void __fastcall TCNCDesigner::DeleteCod(TGCod *cod)
 {
   if(!cod) return;
@@ -309,16 +290,18 @@ void __fastcall TCNCDesigner::DeleteCod(TGCod *cod)
   if(next) next->UpdateOXY();
 }
 //---------------------------------------------------------------------------
+/// Deselect all codes
 void __fastcall TCNCDesigner::DeselectAll()
 {
   if(!Program) return;
   for(int i=0; i<Program->Codes->Count; i++) {
 	TGCod *cod = (TGCod*)Program->Codes->Items[i];
-    cod->State = csNormal;//cod->Selected = false;
+	cod->State = csNormal;
   }
   Render();
 }
 //---------------------------------------------------------------------------
+/// Select cod at x,y coordinates
 GLint __fastcall TCNCDesigner::DoSelect(int x, int y)
 {
   GLint hits;
@@ -349,6 +332,7 @@ GLint __fastcall TCNCDesigner::DoSelect(int x, int y)
   return SelectBuf[(hits-1)*4+3];
 }
 //---------------------------------------------------------------------------
+/// TCNCDesigner - drag drop event handler
 void __fastcall TCNCDesigner::DragDropCod()
 {
   if(DragCod) {
@@ -374,9 +358,7 @@ void __fastcall TCNCDesigner::DragDropCod()
   }
 }
 //---------------------------------------------------------------------------
-// Hint : Use glRasterPos3f() instead of glTranslatef
-//        to position 2d text.
-//---------------------------------------------------------------------------
+/// Draw text
 void __fastcall TCNCDesigner::Draw2DText(AnsiString Text)
 {
   unsigned char *c=(unsigned char *)Text.c_str();
@@ -393,12 +375,22 @@ void __fastcall TCNCDesigner::Draw2DText(AnsiString Text)
   glPopAttrib();
 }
 //---------------------------------------------------------------------------
+/// Draw text at x,y coordinates
 void __fastcall  TCNCDesigner::Draw2DTextXY(double x, double y, AnsiString Text)
 {
   glRasterPos2d(x, y);
   Draw2DText(Text);
 }
 //---------------------------------------------------------------------------
+/// \brief Draw arc
+/// \param x1 - begin X coordinate
+/// \param y1 - begin Y coordinate
+/// \param x2 - end X coordinate
+/// \param y2 - end Y coordinate
+/// \param ox - center X arc coordinate
+/// \param oy - center Y arc coordinate
+/// \param r - radius
+/// \param dir - direction (CW or CCW)
 void __fastcall TCNCDesigner::DrawArc(double x1, double y1, double x2, double y2,
 									  double ox, double oy, double r, int dir)
 {
@@ -433,10 +425,6 @@ void __fastcall TCNCDesigner::DrawArc(double x1, double y1, double x2, double y2
   double prev_X = x1;
   double prev_Y = y1;
 
-  // wersja 1 - podzial katowy
-  //int n = ((a2-a1)*120)/360 + 1;
-  // wersja 2 - podzial liniowy: 4 mm
-  //int n = (fabs(a2-a1)/360 * 2 * M_PI * r1) / 4;
   int n = (fabs(a2-a1)/360 * 2 * M_PI * r1) / 2;
   if(n == 0) n = 1;
   double step = fabs(a2-a1)/n;
@@ -447,10 +435,10 @@ void __fastcall TCNCDesigner::DrawArc(double x1, double y1, double x2, double y2
       x = r1 * cos(rad) + ox;
 	  y = r1 * sin(rad) + oy;
 
-	  if((float)x < min_x) min_x = (float)x;//XXX
-	  if((float)y < min_y) min_y = (float)y;//XXX
-	  if((float)x > max_x) max_x = (float)x;//XXX
-	  if((float)y > max_y) max_y = (float)y;//XXX
+	  if((float)x < min_x) min_x = (float)x;
+	  if((float)y < min_y) min_y = (float)y;
+	  if((float)x > max_x) max_x = (float)x;
+	  if((float)y > max_y) max_y = (float)y;
 
       glBegin(GL_LINES);
         glVertex3f( prev_X, prev_Y, 0.0f);
@@ -467,10 +455,10 @@ void __fastcall TCNCDesigner::DrawArc(double x1, double y1, double x2, double y2
       x = r1 * cos(rad) + ox;
 	  y = r1 * sin(rad) + oy;
 
-	  if((float)x < min_x) min_x = (float)x;//XXX
-	  if((float)y < min_y) min_y = (float)y;//XXX
-	  if((float)x > max_x) max_x = (float)x;//XXX
-	  if((float)y > max_y) max_y = (float)y;//XXX
+	  if((float)x < min_x) min_x = (float)x;
+	  if((float)y < min_y) min_y = (float)y;
+	  if((float)x > max_x) max_x = (float)x;
+	  if((float)y > max_y) max_y = (float)y;
 
       glBegin(GL_LINES);
         glVertex3f( prev_X, prev_Y, 0.0f);
@@ -488,13 +476,13 @@ void __fastcall TCNCDesigner::DrawArc(double x1, double y1, double x2, double y2
   glEnd();
 }
 //---------------------------------------------------------------------------
+/// Draw cod CCW
 void __fastcall TCNCDesigner::DrawCodCCW(TGCod *cod)
 {
   if(cod->State == csSelected) glColor3fv(CL_RED);
   else if(cod->State == csDragged) glColor3fv(CL_CYAN);
   else glColor3fv(CL_YELLOW);
 
-  //DrawArc(cod->Prev->X, cod->Prev->Y, cod->X, cod->Y, cod->OX, cod->OY, cod->R);
   DrawArc(cod->Prev->X, cod->Prev->Y, cod->X, cod->Y,
 		  cod->OX, cod->OY, cod->R, cod->G);
   DrawPoint(cod->X, cod->Y);
@@ -506,13 +494,13 @@ void __fastcall TCNCDesigner::DrawCodCCW(TGCod *cod)
   Draw2DText(IntToStr(Program->Codes->IndexOf(cod)));
 }
 //---------------------------------------------------------------------------
+/// Draw cod CW
 void __fastcall TCNCDesigner::DrawCodCW(TGCod *cod)
 {
   if(cod->State == csSelected) glColor3fv(CL_RED);
   else if(cod->State == csDragged) glColor3fv(CL_CYAN);
   else glColor3fv(CL_YELLOW);
 
-  //DrawArc(cod->X, cod->Y, cod->Prev->X, cod->Prev->Y, cod->OX, cod->OY, cod->R);
   DrawArc(cod->Prev->X, cod->Prev->Y, cod->X, cod->Y,
 		  cod->OX, cod->OY, cod->R, cod->G);
   DrawPoint(cod->X, cod->Y);
@@ -524,12 +512,12 @@ void __fastcall TCNCDesigner::DrawCodCW(TGCod *cod)
   Draw2DText(IntToStr(Program->Codes->IndexOf(cod)));
 }
 //---------------------------------------------------------------------------
+/// Draw cod DRV
 void __fastcall TCNCDesigner::DrawCodDRV(TGCod *cod)
 {
 	const float* cl1 = CL_GREEN;
 	if(cod->State == csSelected) cl1 = CL_RED;
 	else if(cod->State == csDragged) cl1 = CL_CYAN;
-//	if(cod->State == csDragged) cl1 = CL_CYAN;
 	float cl2[3] = { cl1[0], cl1[1], cl1[2] };
 	glColor3fv(cl1);
 
@@ -542,14 +530,12 @@ void __fastcall TCNCDesigner::DrawCodDRV(TGCod *cod)
 		glVertex2f( cod->X-pw, cod->Y+2*pw+pp );
 	glEnd();
 
-	if(drv_path && cod->Prev) { // && cod->State != csDragged) {
+	if(drv_path && cod->Prev) {
 		cl2[0] /= 2;
 		cl2[1] /= 2;
 		cl2[2] /= 2;
 		glEnable(GL_LINE_STIPPLE);
 		glLineStipple(2, 0x5555);
-		//glLineStipple(1, 0x6666);
-		//glLineStipple(1, 0x2222);
 		glColor3fv(cl2);
 		DrawLine(cod->Prev->X, cod->Prev->Y, cod->X, cod->Y);
 		glDisable(GL_LINE_STIPPLE);
@@ -563,6 +549,7 @@ void __fastcall TCNCDesigner::DrawCodDRV(TGCod *cod)
 	Draw2DText(IntToStr(Program->Codes->IndexOf(cod)));
 }
 //---------------------------------------------------------------------------
+/// Draw cod LIN
 void __fastcall TCNCDesigner::DrawCodLIN(TGCod *cod)
 {
   if(cod->State == csSelected) glColor3fv(CL_RED);
@@ -578,6 +565,7 @@ void __fastcall TCNCDesigner::DrawCodLIN(TGCod *cod)
   Draw2DText(IntToStr(Program->Codes->IndexOf(cod)));
 }
 //---------------------------------------------------------------------------
+// Draw OpenGL scene with render mode
 void __fastcall TCNCDesigner::DrawDesignerScene(GLenum RenderMode)
 {
   if(antialiasing) {
@@ -588,22 +576,14 @@ void __fastcall TCNCDesigner::DrawDesignerScene(GLenum RenderMode)
 	glLineWidth(1.5);
   }
 
-
-
-  //glPushMatrix();
-
   glScalef(zoom, zoom, 0.0f);
   if(offsetx != 0.0 || offsety != 0.0)
     glTranslatef(offsetx, offsety, 0.0f);
 
-  //-----------------------------------
-  // rysowanie siatki
-  //-----------------------------------
+  // draw grid
   if(grid) DrawGrid();
 
-  //-----------------------------------
-  // rysowanie krzyzyka srodka rysunku
-  //-----------------------------------
+  // draw X=0, Y=0 cross
   float crossL = 20.0 / zoom;
   glBegin(GL_LINES);
     glColor3f(1.0, 0.0, 0.0);
@@ -617,34 +597,28 @@ void __fastcall TCNCDesigner::DrawDesignerScene(GLenum RenderMode)
   glRasterPos2d(-crossL, crossL);
   Draw2DText("Y");
 
-  //glPopMatrix(); ////////////////
-
-
-
-  //-----------------------------------
-  // rysowanie punktow
-  //-----------------------------------
+  // draw codes
   if(!Program) return;
 
-  min_x = 10000.0;//XXX
-  min_y = 10000.0;//XXX
-  max_x = -10000.0;//XXX
-  max_y = -10000.0;//XXX
+  min_x = 100000.0;
+  min_y = 100000.0;
+  max_x = -100000.0;
+  max_y = -100000.0;
 
   for(int i=Program->Codes->Count-1; i>=0; i--) {
 	TGCod *cod = (TGCod*)Program->Codes->Items[i];
 	if(cod->G != G_DRV) {
-		if(cod->X < min_x) min_x = cod->X;//XXX
-		if(cod->Y < min_y) min_y = cod->Y;//XXX
-		if(cod->X > max_x) max_x = cod->X;//XXX
-		if(cod->Y > max_y) max_y = cod->Y;//XXX
+		if(cod->X < min_x) min_x = cod->X;
+		if(cod->Y < min_y) min_y = cod->Y;
+		if(cod->X > max_x) max_x = cod->X;
+		if(cod->Y > max_y) max_y = cod->Y;
 	}
-	else if(cod->Next) { // cod == G_DRV && cod->Next != G_DRV
+	else if(cod->Next) {
 		if(cod->Next->G != G_DRV) {
-			if(cod->X < min_x) min_x = cod->X;//XXX
-			if(cod->Y < min_y) min_y = cod->Y;//XXX
-			if(cod->X > max_x) max_x = cod->X;//XXX
-			if(cod->Y > max_y) max_y = cod->Y;//XXX
+			if(cod->X < min_x) min_x = cod->X;
+			if(cod->Y < min_y) min_y = cod->Y;
+			if(cod->X > max_x) max_x = cod->X;
+			if(cod->Y > max_y) max_y = cod->Y;
         }
     }
 	if (RenderMode == GL_SELECT) glLoadName(i);
@@ -665,40 +639,25 @@ void __fastcall TCNCDesigner::DrawDesignerScene(GLenum RenderMode)
   }
 
   if (RenderMode == GL_SELECT) {
-    //glPopMatrix();
-    return;
+	return;
   }
-
 
   if(antialiasing) {
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_BLEND);
 	glDisable(GL_LINE_SMOOTH);
-	//glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
 	glLineWidth(1.0);
-	//glLineWidth(1.2);
   }
 
-
-
-  //-----------------------------------
-  // rysowanie prostokata zaznaczania
-  //-----------------------------------
-  if(DesignAction == DA_DRAG_SEL) { // if(drag) {
+  // draw selection rectangle
+  if(DesignAction == DA_DRAG_SEL) {
     glColor3fv(CL_CYAN);
     glEnable(GL_COLOR_LOGIC_OP);
     glLogicOp(GL_XOR);
     DrawFocusRect(drag_mx, drag_my, mx, my);
-    glDisable(GL_COLOR_LOGIC_OP);
-    
-    //glPopMatrix();
+	glDisable(GL_COLOR_LOGIC_OP);
     return;
   }
-
-
-  //-----------------------------------
-  // rysowanie kursora
-  //-----------------------------------
+  // draw cursor
   if(DesignAction != DA_NONE) {
     glColor3fv(CL_CYAN);
     switch(DesignAction) {
@@ -721,9 +680,6 @@ void __fastcall TCNCDesigner::DrawDesignerScene(GLenum RenderMode)
         return;
     }
 
-    //-----------------------------------
-    // rysowanie kursora
-    //-----------------------------------
     glEnable(GL_COLOR_LOGIC_OP);
     glLogicOp(GL_XOR);
 
@@ -741,14 +697,13 @@ void __fastcall TCNCDesigner::DrawDesignerScene(GLenum RenderMode)
     return;
   }
 
-  //glPopMatrix();
-
   min_x = RoundTo(min_x, 0);
   min_y = RoundTo(min_y, 0);
   max_x = RoundTo(max_x, 0);
   max_y = RoundTo(max_y, 0);
 }
 //---------------------------------------------------------------------------
+/// Draw dragged cod
 void __fastcall TCNCDesigner::DrawDraggedCod()
 {
   for(unsigned int i=0; i<drag_list.size(); i++) {
@@ -771,13 +726,15 @@ void __fastcall TCNCDesigner::DrawDraggedCod()
   }
 }
 //---------------------------------------------------------------------------
+/// \brief Draw focus recatndle
+/// \param x1 - begin X coordinate
+/// \param y1 - begin Y coordinate
+/// \param x2 - end X coordinate
+/// \param y2 - end Y coordinate
 void __fastcall TCNCDesigner::DrawFocusRect(double x1 , double y1, double x2 , double y2)
 {
   glEnable(GL_LINE_STIPPLE);
-  //glLineStipple(1, 0x6666);
   glLineStipple(2, 0x5555);
-  //glColor3f(0.0, 1.0, 1.0);
-  //glColor3f(1.0, 1.0, 1.0);
   glBegin(GL_LINE_LOOP);
     glVertex3f( x1, y1, 0.0f);
     glVertex3f( x1, y2, 0.0f);
@@ -787,6 +744,7 @@ void __fastcall TCNCDesigner::DrawFocusRect(double x1 , double y1, double x2 , d
   glDisable(GL_LINE_STIPPLE);
 }
 //---------------------------------------------------------------------------
+/// Draw grid
 void __fastcall TCNCDesigner::DrawGrid()
 {
 
@@ -804,16 +762,13 @@ void __fastcall TCNCDesigner::DrawGrid()
   double x = 0.0;
   double y = 0.0;
 
-  //--------------------------------------------
-  // rysowanie linii pomocniczych - co 10 pole
-  //--------------------------------------------
+  // drawing auxiliary lines - every 10th
   if(2500.0/grid_size > 10.0) {
-    double mxy = 3000.0-grid_size*10;
-    glColor3f(0.32, 0.32, 0.32);
-    //glColor3f(0.28, 0.28, 0.28);
-    glEnable(GL_LINE_STIPPLE);
+	double mxy = 3000.0-grid_size*10;
+	glColor3f(0.32, 0.32, 0.32);
+	glEnable(GL_LINE_STIPPLE);
     glLineStipple(1, 0x6666);
-    // linie pionowe
+	// vertical lines
     x = 0.0;
     y = 0.0;
 
@@ -831,8 +786,8 @@ void __fastcall TCNCDesigner::DrawGrid()
       }
     }
 
-    // linie poziome
-    x = 0.0;
+	// horizontal lines
+	x = 0.0;
     y = 0.0;
     for(int i=0; y<=mxy && y<max_wy; i+=10) {
       y = (double)i * grid_size;
@@ -849,10 +804,7 @@ void __fastcall TCNCDesigner::DrawGrid()
     glDisable(GL_LINE_STIPPLE);
   }
 
-  //--------------------------------------------
-  // rysowanie siatki
-  //--------------------------------------------
-  //glColor3f(0.59, 0.59, 0.59);
+  // draw grid
   glColor3f(0.5, 0.5, 0.5);
   glBegin(GL_POINTS);
   int i = min_wx / grid_size;
@@ -870,6 +822,11 @@ void __fastcall TCNCDesigner::DrawGrid()
   glEnd();
 }
 //---------------------------------------------------------------------------
+/// \brief Draw line
+/// \param x1 - begin X coordinate
+/// \param y1 - begin Y coordinate
+/// \param x2 - end X coordinate
+/// \param y2 - end Y coordinate
 void __fastcall TCNCDesigner::DrawLine(double x1, double y1, double x2 , double y2)
 {
   glBegin(GL_LINES);
@@ -878,6 +835,9 @@ void __fastcall TCNCDesigner::DrawLine(double x1, double y1, double x2 , double 
   glEnd();
 }
 //---------------------------------------------------------------------------
+/// \brief Draw point
+/// \param x1 - X coordinate
+/// \param y1 - Y coordinate
 void __fastcall TCNCDesigner::DrawPoint(double x, double y)
 {
   glPointSize(4);
@@ -887,6 +847,7 @@ void __fastcall TCNCDesigner::DrawPoint(double x, double y)
   glPointSize(1);
 }
 //---------------------------------------------------------------------------
+/// Load program codes from clipboard
 TProgram* __fastcall TCNCDesigner::GetProgramFromClipboard()
 {
   char data[100000];//8192];
@@ -933,6 +894,7 @@ TProgram* __fastcall TCNCDesigner::GetProgramFromClipboard()
   return Prog;
 }
 //---------------------------------------------------------------------------
+/// Get number of selected codes
 int __fastcall TCNCDesigner::GetSelectedCount()
 {
   if(!Program->Codes) return 0;
@@ -944,13 +906,17 @@ int __fastcall TCNCDesigner::GetSelectedCount()
   return count;
 }
 //---------------------------------------------------------------------------
+/// Init OpenGL scene
 void __fastcall TCNCDesigner::InitOpenGL()
 {
   PIXELFORMATDESCRIPTOR pfd;
-  int format_piksela;
+  int format_pixel;
 
-  hdc = GetDC(XPanel->Handle);				        //identyfikator (uchwyt) okna Windows
-  ZeroMemory( &pfd, sizeof( pfd));			//ustalenie typu koloru, buforowania grafiki,
+  // window handle
+  hdc = GetDC(XPanel->Handle);
+
+  // set pixel format
+  ZeroMemory( &pfd, sizeof( pfd));
   pfd.nSize = sizeof( pfd);
   pfd.nVersion = 1;
   pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
@@ -959,40 +925,34 @@ void __fastcall TCNCDesigner::InitOpenGL()
   pfd.cDepthBits = 24;
   pfd.iLayerType = PFD_MAIN_PLANE;
 
-  format_piksela = ChoosePixelFormat(hdc, &pfd);
-  SetPixelFormat(hdc, format_piksela, &pfd);
+  format_pixel = ChoosePixelFormat(hdc, &pfd);
+  SetPixelFormat(hdc, format_pixel, &pfd);
 
-  hrc = wglCreateContext(hdc);						//identyfikator (kontekst) aparatu graficznego OpenGL
+  hrc = wglCreateContext(hdc); // ID (context) of the OpenGL graphics engine
 
   if(hrc == NULL)
  	ShowMessage( "Nie z³apa³em kontekstu grafiki: hrc == NULL");
 
-  if(wglMakeCurrent(hdc, hrc) == false)				//aktywowanie aparatu graficznego OpenGL
+  if(wglMakeCurrent(hdc, hrc) == false)	// Activate OpenGL graphics engine
 	ShowMessage("Nie uaktywni³em grafiki");
-
 
    GLFont2D=CreateFont2D(Font,32,96);
 
-  //------------------------------------------
-  //     mitegl
-  //------------------------------------------
+  // Initial settings of OpenGL scene
   glViewport(0,0,(GLsizei)XPanel->Width,(GLsizei)XPanel->Height);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   glDepthFunc(GL_LEQUAL);
-  //glDepthFunc(GL_LESS);
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_AUTO_NORMAL);
-  //glDisable(GL_POLYGON_SMOOTH);
-  //glClearColor(0.5f,0.5f,0.5f,1.0f);
-  //glEnable(GL_BLEND);
   glClearColor(0.0f,0.0f,0.0f,1.0f);
 
   UpdateLabels();
 }
 //---------------------------------------------------------------------------
+/// Returns the cod at the x, y position
 bool __fastcall TCNCDesigner::IsCodPointAt(TGCod *cod, double x, double y)
 {
   double delta = 3 / zoom;
@@ -1003,6 +963,7 @@ bool __fastcall TCNCDesigner::IsCodPointAt(TGCod *cod, double x, double y)
   return false;
 }
 //---------------------------------------------------------------------------
+/// Moves cod to new index
 void __fastcall TCNCDesigner::MovePoint()
 {
   if(!CurrCod) return;
@@ -1012,7 +973,6 @@ void __fastcall TCNCDesigner::MovePoint()
   if(s.IsEmpty()) return;
   int dst_id = StrToInt(s);
   if(dst_id < 0 || dst_id > Program->Codes->Count-1) return;
-  //int src_id = codes->IndexOf(cod);
   TGCod *cod1 = (TGCod*)Program->Codes->Items[dst_id];
   if(CurrCod == cod1) return;
   TGCod *tmp;
@@ -1037,51 +997,46 @@ void __fastcall TCNCDesigner::MovePoint()
     cod1->Next = tmp;
   }
 
-  //cod->UpdateOXY();
-  //cod1->UpdateOXY();
   CurrCod = cod1;
   CurrCod->UpdateOXY();
   if(CurrCod->Next) CurrCod->Next->UpdateOXY(); 
   Render();
 }
 //---------------------------------------------------------------------------
+/// Reverse the program path direction
 void __fastcall TCNCDesigner::ReverseStitch()
 {
 	if(!CurrCod) return;
 
-	//TGCod* first_cod = 0;
-	//TGCod* last_cod = 0;
-
-	// znajdz poczatek zaznaczonego sciegu - pkt DRV
+	// find the beginning of the marked DRV point
 	TGCod* cod = (TGCod*)Program->Codes->First();
 	while(cod) {
 		if(cod->G == G_DRV && cod->State == csSelected) break;
 		cod = cod->Next;
 	}
 
-	// sprawdz czy jest zaznaczona sciezka
+	// check if the path is selected
 	if(!cod) return;
 	if(!cod->Next) return;
 	if(cod->Next->State != csSelected) return;
-	//first_cod = cod;
 
-	// znajdz ostatni zaznaczony kod
+	// find the last selected cod
 	while(cod->Next) {
 		if(cod->Next->State != csSelected) break;
 		cod = cod->Next;
 	}
 	if(cod->Next && cod->Next->G != G_DRV) return;
-	//last_cod = cod;
 }
 //---------------------------------------------------------------------------
+/// Rotate program with designed angle
 void __fastcall TCNCDesigner::Rotate(TRotateAngle RAngle)
 {
   if(!Program) return;
 
-  int _minx = 10000;
-  int _miny = 10000;
-  int _maxx = -10000;
-  int _maxy = -10000;
+  int _minx = 100000;
+  int _miny = 100000;
+  int _maxx = -100000;
+  int _maxy = -100000;
   int sel_count = 0;
   
   for(int i=0; i<Program->Codes->Count; i++) {
@@ -1106,15 +1061,15 @@ void __fastcall TCNCDesigner::Rotate(TRotateAngle RAngle)
       int dx = ox - cod->X;
       int dy = oy - cod->Y;
 	  switch(RAngle) {
-		case RA_270:   // 90 stopni w prawo
+		case RA_270:   // 90 degrees right
           cod->Y = oy + dx;
-          cod->X = ox - dy;
+		  cod->X = ox - dy;
           break;
-		case RA_90:  // 90 stopni w lewo
+		case RA_90:  // 90 degrees left
           cod->Y = oy - dx;
           cod->X = ox + dy;
           break;
-        case RA_180:  // 180 stopni
+		case RA_180:  // 180 degrees
           cod->Y = oy + dy;
           cod->X = ox + dx;
           break;
@@ -1126,6 +1081,7 @@ void __fastcall TCNCDesigner::Rotate(TRotateAngle RAngle)
   Render();
 }
 //---------------------------------------------------------------------------
+/// Rotate program with any angle
 void __fastcall TCNCDesigner::RotateAngle()
 {
   if(!Program) return;
@@ -1172,6 +1128,7 @@ void __fastcall TCNCDesigner::RotateAngle()
   Render();
 }
 //---------------------------------------------------------------------------
+/// Mirror the program with horizontal or vertical direction
 void __fastcall TCNCDesigner::Mirror(TMirrorDirection MDir)
 {
   if(!Program) return;
@@ -1209,27 +1166,23 @@ void __fastcall TCNCDesigner::Mirror(TMirrorDirection MDir)
           break;
 		case MD_VERTICAL:
 		  cod->Y = oy + dy;
-          break;
-		//case RA_180:
-		//  cod->Y = oy + dy;
-		//  cod->X = ox + dx;
-		//  break;
+		  break;
 	  }
-      if(cod->G == G_CW) cod->G = G_CCW;
+	  if(cod->G == G_CW) cod->G = G_CCW;
 	  else if(cod->G == G_CCW) cod->G = G_CW;
-      cod->UpdateOXY();
+	  cod->UpdateOXY();
 	}
   }
   SetModified(true);
   Render();
 }
 //---------------------------------------------------------------------------
+/// Paste codes from clipboard
 void __fastcall TCNCDesigner::Paste()
 {
-/*
 	if(!Program) return;
 	DeselectAll();
-	char data[8192];
+	char data[65536];
 	memset(data, 0, sizeof(data));
 	Clipboard()->Open();
 	Clipboard()->GetTextBuf(data, sizeof(data));
@@ -1247,56 +1200,7 @@ void __fastcall TCNCDesigner::Paste()
 	if(a.size() < 4) return;
 	if(a[0] != "CNCEditor") return;
 
-  // get codes
-  Program->SaveUndo();
-  while(iss) {
-	memset(buf, 0, sizeof(buf));
-	iss.getline(buf, sizeof(buf), ';');
-	line = buf;
-	if(line.IsEmpty()) continue;
-
-	TGCod *cod = new TGCod;
-	sscanf(buf, "%d|%f|%f|%f|%d|%d|%d",
-		   &cod->G, &cod->X, &cod->Y, &cod->R, &cod->F, &cod->M, &cod->T);
-
-	if(Program->Codes->Count) {
-	  cod->Prev = (TGCod*)Program->Codes->Last();
-	  cod->Prev->Next = cod;
-	}
-	cod->State = csSelected;
-	Program->Codes->Add(cod);
-	cod->UpdateOXY();
-	CurrCod = cod;
-  }
-  SetValues();
-  SetModified(true);
-  Render();
-*/
-
-	if(!Program) return;
-	DeselectAll();
-	char data[65536]; //[8192];
-	memset(data, 0, sizeof(data));
-	Clipboard()->Open();
-	Clipboard()->GetTextBuf(data, sizeof(data));
-	Clipboard()->Close();
-
-	std::istrstream iss(data, sizeof(data));
-	char buf[1024];
-	char str[1024];
-	AnsiString line;
-
-	// get program info
-	memset(buf, 0, sizeof(buf));
-	iss.getline(buf, sizeof(buf), ';');
-	array a = explode(buf, '|');
-	if(a.size() < 4) return;
-	if(a[0] != "CNCEditor") return;
-
-
-    ///////////////////////////////
 	// get codes
-	//TGCod *curr = CurrCod;
 	TGCod *cod = 0;
 	int curr_id = -1;
 	if(CurrCod) curr_id = Program->Codes->IndexOf(CurrCod);
@@ -1315,15 +1219,7 @@ void __fastcall TCNCDesigner::Paste()
 		sscanf(buf, "%d|%f|%f|%f|%d|%d|%d",
 			   &cod->G, &cod->X, &cod->Y, &cod->R, &cod->F, &cod->M, &cod->T);
 
-		if(curr_id == -1) { // dodaj na koniec
-			/*
-			if(Program->Codes->Count) {
-				cod->Prev = (TGCod*)Program->Codes->Last();
-				cod->Prev->Next = cod;
-            }
-			cod->State = csSelected;
-			Program->Codes->Add(cod);
-			*/
+		if(curr_id == -1) { // append
 			if(Program->Codes->Count) {
 				cod->Prev = (TGCod*)Program->Codes->Last();
 				cod->Prev->Next = cod;
@@ -1332,7 +1228,7 @@ void __fastcall TCNCDesigner::Paste()
 			cod->State = csSelected;
 			cod->UpdateOXY();
 		}
-		else { // wstaw przed CurrCod
+		else { // insert before CurrCod
 			cod->Prev = CurrCod->Prev;
 			cod->Next = CurrCod;
 			CurrCod->Prev = cod;
@@ -1352,6 +1248,7 @@ void __fastcall TCNCDesigner::Paste()
 	Render();
 }
 //---------------------------------------------------------------------------
+/// Release OpenGL memory context
 void __fastcall TCNCDesigner::ReleaseOpenGL()
 {
   wglMakeCurrent(NULL, NULL);
@@ -1359,6 +1256,7 @@ void __fastcall TCNCDesigner::ReleaseOpenGL()
   ReleaseDC(Handle, hdc);
 }
 //---------------------------------------------------------------------------
+/// Render all
 void __fastcall TCNCDesigner::Render()
 {
   glMatrixMode(GL_PROJECTION);
@@ -1370,15 +1268,12 @@ void __fastcall TCNCDesigner::Render()
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	// Clear Screen And Depth Buffer
   glLoadIdentity();					// Reset The Current Modelview Matrix
 
-  /*
-  if(DesignAction == DA_ANIMATION)
-    DrawAnimationScene();
-  else     */
-	DrawDesignerScene(GL_RENDER);
-
+  DrawDesignerScene(GL_RENDER);
+  
   SwapBuffers(hdc);
 }
 //---------------------------------------------------------------------------
+/// Select all codes
 void __fastcall TCNCDesigner::SelectAll()
 {
   if(!Program) return;
@@ -1389,22 +1284,19 @@ void __fastcall TCNCDesigner::SelectAll()
   Render();
 }
 //---------------------------------------------------------------------------
+/// Select codes inside rectangle
 void __fastcall TCNCDesigner::SelectAt(double left, double bottom,
 									   double right, double top)
 {
   for(int i=0; i<Program->Codes->Count; i++) {
 	TGCod *cod = (TGCod*)Program->Codes->Items[i];
-    if(cod->X>=left && cod->X<=right && cod->Y>=bottom && cod->Y<=top) {
-	  //cod->Selected = true;
+	if(cod->X>=left && cod->X<=right && cod->Y>=bottom && cod->Y<=top) {
 	  cod->State = csSelected;
-      //curr_cod = cod;
-    }
-    else {
-      //cod->Selected = false;
     }
   }
 }
 //---------------------------------------------------------------------------
+/// Select program path
 void __fastcall TCNCDesigner::SelectStitch()
 {
 	if(!CurrCod) return;
@@ -1425,12 +1317,14 @@ void __fastcall TCNCDesigner::SelectStitch()
 	}
 }
 //---------------------------------------------------------------------------
+/// Set antialiased rendering
 void __fastcall TCNCDesigner::SetAntialiasing(bool aa)
 {
   antialiasing = aa;
   Render();
 }
 //---------------------------------------------------------------------------
+/// Set design action
 void __fastcall TCNCDesigner::SetDesignAction(TDesignAction dAction)
 {
   if(!Program) return;
@@ -1444,6 +1338,7 @@ void __fastcall TCNCDesigner::SetDesignAction(TDesignAction dAction)
   DesignAction = dAction;
 }
 //---------------------------------------------------------------------------
+/// Set modified attribute
 void __fastcall TCNCDesigner::SetModified(bool mod)
 {
   if(modified != mod) {
@@ -1452,16 +1347,16 @@ void __fastcall TCNCDesigner::SetModified(bool mod)
   }
 }
 //---------------------------------------------------------------------------
+/// Set current designed program
 void __fastcall TCNCDesigner::SetProgram(TProgram* prog)
 {
   Program = prog;
   CurrCod = 0;
-  //Render();
   SetValues();
   ZoomAll();
-  //Visible = true;
 }
 //---------------------------------------------------------------------------
+/// Set read only mode
 void __fastcall TCNCDesigner::SetReadOnly(bool ro)
 {
   read_only = ro;
@@ -1471,12 +1366,13 @@ void __fastcall TCNCDesigner::SetReadOnly(bool ro)
   }
 }
 //---------------------------------------------------------------------------
+/// Set FOnSelValues handler
 void __fastcall TCNCDesigner::SetValues()
 {
-  //if(FOnSetValues && CurrCod) FOnSetValues(CurrCod);
   if(FOnSetValues) FOnSetValues(this);
 }
 //---------------------------------------------------------------------------
+/// Update information labels
 void __fastcall TCNCDesigner::UpdateLabels()
 {
   LabelX->Caption = "X: " + String(RoundTo(curs_x, 0));
@@ -1484,30 +1380,35 @@ void __fastcall TCNCDesigner::UpdateLabels()
   LabelS->Caption = "S: " + String(grid_size);
 }
 //---------------------------------------------------------------------------
+/// View grid mode
 void __fastcall TCNCDesigner::ViewGrid(bool view)
 {
   grid = view;
   Render();
 }
 //---------------------------------------------------------------------------
+/// View codes numbers mode
 void __fastcall TCNCDesigner::ViewNumbers(bool view)
 {
   numbers = view;
   Render();
 }
 //---------------------------------------------------------------------------
+/// View ruler mode
 void __fastcall TCNCDesigner::ViewRuler(bool view)
 {
   ruler = view;
   Render();
 }
 //---------------------------------------------------------------------------
+/// View DRV path mode
 void __fastcall TCNCDesigner::ViewDrvPath(bool view)
 {
   drv_path = view;
   Render();
 }
 //---------------------------------------------------------------------------
+/// Zoom all
 void __fastcall TCNCDesigner::ZoomAll()
 {
  int x=0, y=0;
@@ -1540,8 +1441,8 @@ void __fastcall TCNCDesigner::ZoomAll()
   min_wy = -((double)h/2) / zoom + offsety;
   max_wx = ((double)w/2) / zoom - offsetx;
   max_wy = ((double)h/2) / zoom - offsety;
-  offsetx = min_wx;// + 30.0;
-  offsety = min_wy;// + 30.0;
+  offsetx = min_wx;
+  offsety = min_wy;
   ScrollX->Position = -offsetx;
   ScrollY->Position = offsety;
 
@@ -1549,18 +1450,21 @@ void __fastcall TCNCDesigner::ZoomAll()
   UpdateLabels();
 }
 //---------------------------------------------------------------------------
+/// Zoom in
 void __fastcall TCNCDesigner::ZoomIn()
 {
   zoom = zoom * 1.2;
   Render();
 }
 //---------------------------------------------------------------------------
+/// Zoom out
 void __fastcall TCNCDesigner::ZoomOut()
 {
   zoom = zoom / 1.2;
   Render();
 }
 //---------------------------------------------------------------------------
+/// Form resize event handler
 void __fastcall TCNCDesigner::FrameResize(TObject *Sender)
 {
   glViewport(0,0,(GLsizei)XPanel->Width,(GLsizei)XPanel->Height);
@@ -1575,6 +1479,7 @@ void __fastcall TCNCDesigner::FrameResize(TObject *Sender)
   Render();
 }
 //---------------------------------------------------------------------------
+/// Form mouse wheel event handler
 void __fastcall TCNCDesigner::FrameMouseWheel(TObject *Sender,
       TShiftState Shift, int WheelDelta, TPoint &MousePos, bool &Handled)
 {
@@ -1582,9 +1487,6 @@ void __fastcall TCNCDesigner::FrameMouseWheel(TObject *Sender,
   if(WheelDelta < 0 && zoom < 0.001) return;
 
   TPoint p = XPanel->ScreenToClient(MousePos);
-  //StatusBar->SimpleText = "X = " + IntToStr(p.x) +
-  //						  "     Y = " + IntToStr(p.y);
-
 
   prev_mx = mx;
   prev_my = my;
@@ -1601,7 +1503,6 @@ void __fastcall TCNCDesigner::FrameMouseWheel(TObject *Sender,
 	zoom = zoom / 1.2;
 
   //----------------- calculate offset -------------------
-  //CalculateOffset(mx, my, wx, wy);
   offsetx = (wx / (zoom/prev_zoom)) - mx;
   offsety = (wy / (zoom/prev_zoom)) - my;
 
@@ -1610,15 +1511,7 @@ void __fastcall TCNCDesigner::FrameMouseWheel(TObject *Sender,
   max_wx = ((double)XPanel->Width/2) / zoom - offsetx;
   max_wy = ((double)XPanel->Height/2) / zoom - offsety;
   //------------------------------------------------------
-  
-  /*  nieaktualne
-  ScrollX->Min = -3000;
-  ScrollX->Max =  3000;
-  ScrollY->Min = -3000;
-  ScrollY->Max =  3000;
-  */
 
-  // mitegl
   ScrollX->Position = -offsetx;
   ScrollY->Position = offsety;
   UpdateLabels();
@@ -1627,6 +1520,7 @@ void __fastcall TCNCDesigner::FrameMouseWheel(TObject *Sender,
   Handled = true;
 }
 //---------------------------------------------------------------------------
+/// XScroll scroll event handler
 void __fastcall TCNCDesigner::ScrollXScroll(TObject *Sender,
       TScrollCode ScrollCode, int &ScrollPos)
 {
@@ -1635,6 +1529,7 @@ void __fastcall TCNCDesigner::ScrollXScroll(TObject *Sender,
   UpdateLabels();
 }
 //---------------------------------------------------------------------------
+/// XScroll scroll event handler
 void __fastcall TCNCDesigner::ScrollYScroll(TObject *Sender,
       TScrollCode ScrollCode, int &ScrollPos)
 {
@@ -1643,6 +1538,7 @@ void __fastcall TCNCDesigner::ScrollYScroll(TObject *Sender,
   UpdateLabels();
 }
 //---------------------------------------------------------------------------
+/// XPanel mouse double click event handler
 void __fastcall TCNCDesigner::XPanelDblClick(TObject *Sender)
 {
 	SelectStitch();
@@ -1653,6 +1549,7 @@ void __fastcall TCNCDesigner::XPanelDblClick(TObject *Sender)
 	UpdateLabels();
 }
 //---------------------------------------------------------------------------
+/// XPanel mouse move event handler
 void __fastcall TCNCDesigner::XPanelMouseMove(TObject *Sender,
       TShiftState Shift, int X, int Y)
 {
@@ -1686,8 +1583,6 @@ void __fastcall TCNCDesigner::XPanelMouseMove(TObject *Sender,
 	if(DesignAction != DA_NONE) need_redraw = true;
   }
 
-  //UpdateStatusBar();
-
   if(DesignAction != DA_NONE) {
 	switch(DesignAction) {
       case DA_CW:
@@ -1699,7 +1594,7 @@ void __fastcall TCNCDesigner::XPanelMouseMove(TObject *Sender,
       case DA_LIN:
 		break;
 	  case DA_DRAG_COD: {
-      	if(drag_list.empty()) {   // dodane 18.02.2014
+		if(drag_list.empty()) {   // added 18.02.2014
 			if(need_redraw) Render();
 			return;
 		}
@@ -1711,12 +1606,7 @@ void __fastcall TCNCDesigner::XPanelMouseMove(TObject *Sender,
 		need_redraw = true;
         break;
       }
-      case DA_DRAG_MULT_COD: {
-        //TCod *cod1 = drag_list[0];
-        //cod1->X = curs_x;
-        //cod1->Y = curs_y;
-        //cod1->UpdateOXY();
-        //if(cod1->Next) cod1->Next->UpdateOXY();
+	  case DA_DRAG_MULT_COD: {
         for(unsigned int i=0; i<drag_list.size(); i++) {
 		  TGCod *cod = drag_list[i];
 		  if(cod->ID > -1) {
@@ -1741,17 +1631,11 @@ void __fastcall TCNCDesigner::XPanelMouseMove(TObject *Sender,
   }
 
 
-  //if(drag) {
-  //  need_redraw = true;
-  //}
-
   double delta = 5 / zoom;
-  //if(DragCod && grid) delta = grid_size / 2; 
   double dx = fabs(curs_x - drag_mx);
   double dy = fabs(curs_y - drag_my);
 
   if(Shift.Contains(ssLeft) && (dx > delta || dy > delta)) {
-	//drag = true;
 	int prev_action = DesignAction;
 	if(DesignAction == DA_NONE) DesignAction = DA_DRAG_SEL;
 	if(DragCod) DesignAction = DA_DRAG_COD;
@@ -1764,6 +1648,7 @@ void __fastcall TCNCDesigner::XPanelMouseMove(TObject *Sender,
   UpdateLabels();
 }
 //---------------------------------------------------------------------------
+/// XPanel mouse button down event handler
 void __fastcall TCNCDesigner::XPanelMouseDown(TObject *Sender,
       TMouseButton Button, TShiftState Shift, int X, int Y)
 {
@@ -1814,8 +1699,7 @@ void __fastcall TCNCDesigner::XPanelMouseDown(TObject *Sender,
         y1 = drop_my > drag_my ? drag_my : drop_my;
         x2 = drop_mx > drag_mx ? drop_mx : drag_mx;
         y2 = drop_my > drag_my ? drop_my : drag_my;
-        SelectAt(x1, y1, x2, y2);
-		//drag = false;
+		SelectAt(x1, y1, x2, y2);
 		if(FOnDesignAction) FOnDesignAction(DesignAction);
 		DesignAction = DA_NONE;
 		Render();
@@ -1880,7 +1764,6 @@ void __fastcall TCNCDesigner::XPanelMouseDown(TObject *Sender,
             if(cod->State != csSelected) {
               if(prev_sel && cod == prev_sel->Next) {
 				TGCod *cod2 = new TGCod(*cod);
-                //cod2->State = csDragged;
                 prev_sel->Next = cod2;
                 cod2->Prev = prev_sel;
                 cod2->ID = -1;
@@ -1909,8 +1792,7 @@ void __fastcall TCNCDesigner::XPanelMouseDown(TObject *Sender,
         Render();
       }
     }
-    else {  // dodane 18.02.2014
-		//DesignAction = DA_NONE;
+	else {  // added 18.02.2014
 		DragCod = 0;
 		DragMultCod = 0;
 	}
@@ -1920,6 +1802,7 @@ void __fastcall TCNCDesigner::XPanelMouseDown(TObject *Sender,
   UpdateLabels();
 }
 //---------------------------------------------------------------------------
+/// XPanel start drag event handler
 void __fastcall TCNCDesigner::XPanelStartDrag(TObject *Sender,
 	  TDragObject *&DragObject)
 {
@@ -1928,6 +1811,7 @@ void __fastcall TCNCDesigner::XPanelStartDrag(TObject *Sender,
   if(FOnDesignAction) FOnDesignAction(DesignAction);
 }
 //---------------------------------------------------------------------------
+/// HiddenEdit key down event handler
 void __fastcall TCNCDesigner::HiddenEditKeyDown(TObject *Sender, WORD &Key,
       TShiftState Shift)
 {
@@ -1941,29 +1825,13 @@ void __fastcall TCNCDesigner::HiddenEditKeyDown(TObject *Sender, WORD &Key,
 		delete drag_list[i];
 	  drag_list.clear();
       break;
-    case VK_DELETE:
-      //MenuUsunClick(this);
+	case VK_DELETE:
 	  break;
 	case VK_LEFT:
 	case VK_RIGHT:
 	case VK_UP:
 	case VK_DOWN:
 	  Program->SaveUndo();
-//	  for(int i=0; i<Program->Codes->Count; i++) {
-//		TGCod *cod = (TGCod*)Program->Codes->Items[i];
-//		if(cod->State == csSelected) {
-//		  int step = Shift.Contains(ssCtrl) ? 10 : 1;
-//		  switch(Key) {
-//			case VK_LEFT:  cod->SetX(cod->X-step); break;
-//			case VK_RIGHT: cod->SetX(cod->X+step); break;
-//			case VK_UP:    cod->SetY(cod->Y+step); break;
-//			case VK_DOWN:  cod->SetY(cod->Y-step); break;
-//		  }
-//		  cod->UpdateOXY();
-//		  if(cod->Next) cod->Next->UpdateOXY();
-//		  SetModified(true);
-//		}
-//	  }
 	  for(int i=0; i<Program->Codes->Count; i++) {
 		TGCod *cod = (TGCod*)Program->Codes->Items[i];
 		if(cod->State == csSelected) {
@@ -1978,10 +1846,7 @@ void __fastcall TCNCDesigner::HiddenEditKeyDown(TObject *Sender, WORD &Key,
 	  }
 	  for(int i=0; i<Program->Codes->Count; i++) {
 		TGCod *cod = (TGCod*)Program->Codes->Items[i];
-		//if(cod->State == csSelected) {
-		  cod->UpdateOXY();
-		//  if(cod->Next) cod->Next->UpdateOXY();
-		//}
+		cod->UpdateOXY();
 	  }
 	  SetModified(true);
 	  Render();
@@ -1991,6 +1856,7 @@ void __fastcall TCNCDesigner::HiddenEditKeyDown(TObject *Sender, WORD &Key,
   SetValues();
 }
 //---------------------------------------------------------------------------
+/// XPanel paint event handler
 void __fastcall TCNCDesigner::XPanelPaint(TObject *Sender)
 {
   Render();

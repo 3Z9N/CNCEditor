@@ -2,7 +2,7 @@ object MainForm: TMainForm
   Left = 0
   Top = 0
   Caption = 'CNC Edytor'
-  ClientHeight = 682
+  ClientHeight = 702
   ClientWidth = 730
   Color = clAppWorkSpace
   Font.Charset = DEFAULT_CHARSET
@@ -23,7 +23,7 @@ object MainForm: TMainForm
   object Splitter1: TSplitter
     Left = 158
     Top = 30
-    Height = 627
+    Height = 647
     AutoSnap = False
     Color = clBtnFace
     ParentColor = False
@@ -36,11 +36,12 @@ object MainForm: TMainForm
     Left = 0
     Top = 30
     Width = 158
-    Height = 627
+    Height = 647
     Align = alLeft
     BevelOuter = bvNone
     ParentBackground = False
     TabOrder = 0
+    ExplicitHeight = 627
     object Splitter2: TSplitter
       Left = 0
       Top = 209
@@ -90,16 +91,17 @@ object MainForm: TMainForm
       Left = 0
       Top = 212
       Width = 158
-      Height = 415
+      Height = 435
       Align = alClient
       BevelOuter = bvLowered
       Caption = 'Panel3'
       TabOrder = 1
+      ExplicitHeight = 415
       object ObjectEditor: TValueListEditor
         Left = 1
         Top = 21
         Width = 156
-        Height = 393
+        Height = 413
         Align = alClient
         BorderStyle = bsNone
         DefaultColWidth = 60
@@ -109,6 +111,9 @@ object MainForm: TMainForm
           '')
         TabOrder = 0
         OnValidate = ObjectEditorValidate
+        ExplicitLeft = 0
+        ExplicitTop = 18
+        ExplicitHeight = 393
         ColWidths = (
           60
           94)
@@ -138,6 +143,8 @@ object MainForm: TMainForm
     ParentBackground = False
     ParentColor = False
     TabOrder = 1
+    ExplicitLeft = 1
+    ExplicitTop = -5
     object ToolBar1: TToolBar
       Left = 11
       Top = 2
@@ -321,13 +328,14 @@ object MainForm: TMainForm
   end
   object Panel4: TPanel
     Left = 0
-    Top = 657
+    Top = 677
     Width = 730
     Height = 25
     Align = alBottom
     BevelOuter = bvNone
     BorderWidth = 2
     TabOrder = 3
+    ExplicitTop = 657
     object InfoPanel: TPanel
       Left = 2
       Top = 2
@@ -361,13 +369,15 @@ object MainForm: TMainForm
         'Kod programu')
       TabIndex = 0
       OnChange = DockTabSetChange
+      ExplicitLeft = 546
+      ExplicitTop = 5
     end
   end
   inline CodeEditor: TCodeEditor
     Left = 161
     Top = 30
     Width = 569
-    Height = 627
+    Height = 647
     Align = alClient
     TabOrder = 4
     TabStop = True
@@ -378,12 +388,12 @@ object MainForm: TMainForm
     ExplicitHeight = 627
     inherited Panel1: TPanel
       Width = 569
-      Height = 627
+      Height = 647
       ExplicitWidth = 569
       ExplicitHeight = 627
       inherited Memo: TMemo
         Width = 567
-        Height = 601
+        Height = 621
         ExplicitTop = 25
         ExplicitWidth = 567
         ExplicitHeight = 601
@@ -401,7 +411,7 @@ object MainForm: TMainForm
     Left = 161
     Top = 30
     Width = 569
-    Height = 627
+    Height = 647
     Align = alClient
     TabOrder = 2
     TabStop = True
@@ -410,7 +420,7 @@ object MainForm: TMainForm
     ExplicitWidth = 569
     ExplicitHeight = 627
     inherited PanelX: TPanel
-      Top = 609
+      Top = 629
       Width = 569
       ExplicitTop = 609
       ExplicitWidth = 569
@@ -425,11 +435,11 @@ object MainForm: TMainForm
     end
     inherited PanelY: TPanel
       Left = 551
-      Height = 609
+      Height = 629
       ExplicitLeft = 551
       ExplicitHeight = 609
       inherited ScrollY: TScrollBar
-        Height = 609
+        Height = 629
         ExplicitHeight = 609
       end
     end

@@ -28,12 +28,15 @@ int new_suffix = 1;
 #pragma link "TCodeEditor"
 #pragma resource "*.dfm"
 TMainForm *MainForm;
+
 //---------------------------------------------------------------------------
+/// Constructor
 __fastcall TMainForm::TMainForm(TComponent* Owner)
 	: TForm(Owner)
 {
 }
 //---------------------------------------------------------------------------
+/// File new action event handler
 void __fastcall TMainForm::FileNewExecute(TObject *Sender)
 {
   SaveDialog->Filter = "CNC Edytor Projekt (*.cne)|*.cne";
@@ -44,6 +47,7 @@ void __fastcall TMainForm::FileNewExecute(TObject *Sender)
   proj->SaveToFile(SaveDialog->FileName);
 }
 //---------------------------------------------------------------------------
+/// File open action event handler
 void __fastcall TMainForm::FileOpenExecute(TObject *Sender)
 {
   OpenDialog->Filter = "CNC Editor Projekt (*.cne)|*.cne|MiteGL Projekt (*.mef)|*.mef";
@@ -60,7 +64,6 @@ void __fastcall TMainForm::FileOpenExecute(TObject *Sender)
   Screen->Cursor = crDefault;
   ProjectTree->Visible = true;
 
-  // update RecentPopupMenu->Items
   for(int i=0; i<RecentPopupMenu->Items->Count; i++) {
 	TMenuItem *item = RecentPopupMenu->Items->Items[i];
 	if(item->Caption == Project->FileName) {
@@ -77,6 +80,7 @@ void __fastcall TMainForm::FileOpenExecute(TObject *Sender)
 
 }
 //---------------------------------------------------------------------------
+/// File save action event handler
 void __fastcall TMainForm::FileSaveExecute(TObject *Sender)
 {
   TTreeNode *Node = ProjectTree->Selected;
@@ -90,10 +94,9 @@ void __fastcall TMainForm::FileSaveExecute(TObject *Sender)
   FileSave->Enabled = false;
   Screen->Cursor = crDefault;
   CNCDesigner->SetModified(false);
-  //-----
-  //Project->SaveToFiles();
 }
 //---------------------------------------------------------------------------
+/// File save as action event handler
 void __fastcall TMainForm::FileSaveAsExecute(TObject *Sender)
 {
   TTreeNode *Node = ProjectTree->Selected;
@@ -122,31 +125,34 @@ void __fastcall TMainForm::FileSaveAsExecute(TObject *Sender)
   CNCDesigner->SetModified(false);
 }
 //---------------------------------------------------------------------------
+/// File print action event handler
 void __fastcall TMainForm::FilePrintExecute(TObject *Sender)
 {
-	//CNCDesigner->SetReadOnly(true);
 	PrintForm->ShowModal();
 }
 //---------------------------------------------------------------------------
+// File close action event handler
 void __fastcall TMainForm::FileExitExecute(TObject *Sender)
 {
 	Close();
 }
 //---------------------------------------------------------------------------
+/// Edit undo action event handler
 void __fastcall TMainForm::EditUndoExecute(TObject *Sender)
 {
   if(!CNCDesigner->Program) return;
   CNCDesigner->Program->LoadUndo();
   CNCDesigner->Render();
-  //EditUndo->Enabled = 
 }
 //---------------------------------------------------------------------------
+/// Edit cut action event handler
 void __fastcall TMainForm::EditCutExecute(TObject *Sender)
 {
   CNCDesigner->Copy();
   CNCDesigner->Delete();
 }
 //---------------------------------------------------------------------------
+/// Edit copy action event handler
 void __fastcall TMainForm::EditCopyExecute(TObject *Sender)
 {
   if(ProjectTree->Focused()) {
@@ -159,6 +165,7 @@ void __fastcall TMainForm::EditCopyExecute(TObject *Sender)
   }
 }
 //---------------------------------------------------------------------------
+/// Edit paste action event handler
 void __fastcall TMainForm::EditPasteExecute(TObject *Sender)
 {
   if(ProjectTree->Focused()) {
@@ -168,8 +175,6 @@ void __fastcall TMainForm::EditPasteExecute(TObject *Sender)
 	for (int i=0; i<Project->Root->Count; i++) {
 	  if(Prog->Name.AnsiCompareIC(Project->Root->Item[i]->Text) == 0) {
 		Prog->Name += " (nowy)";
-		//MessageBox(0, "Nazwa programu musi byæ ró¿na od pozosta³ych programów!",
-		//		   "Zmiana nazwy programu", MB_OK | MB_ICONWARNING);
 		break;
 	  }
 	}
@@ -182,112 +187,128 @@ void __fastcall TMainForm::EditPasteExecute(TObject *Sender)
   }
 }
 //---------------------------------------------------------------------------
+/// Edit delete action event handler
 void __fastcall TMainForm::EditDeleteExecute(TObject *Sender)
 {
   CNCDesigner->Delete();
 }
 //---------------------------------------------------------------------------
+// Edit select all action event handler
 void __fastcall TMainForm::EditSelectAllExecute(TObject *Sender)
 {
   CNCDesigner->SelectAll();
 }
 //---------------------------------------------------------------------------
+/// Edit move to point no. action event handler
 void __fastcall TMainForm::EditMovePointExecute(TObject *Sender)
 {
   CNCDesigner->MovePoint();
 }
 //---------------------------------------------------------------------------
+/// Edit rotate 90 degrees action event handler
 void __fastcall TMainForm::EditRotate90Execute(TObject *Sender)
 {
   CNCDesigner->Rotate(RA_90);
 }
 //---------------------------------------------------------------------------
+/// Edit rotate 180 degrees action event handler
 void __fastcall TMainForm::EditRotate180Execute(TObject *Sender)
 {
   CNCDesigner->Rotate(RA_180);
 }
 //---------------------------------------------------------------------------
+/// Edit rotate 270 degrees action event handler
 void __fastcall TMainForm::EditRotate270Execute(TObject *Sender)
 {
   CNCDesigner->Rotate(RA_270);
 }
 //---------------------------------------------------------------------------
+/// Edit mirror vertical action event handler
 void __fastcall TMainForm::EditMirrorVExecute(TObject *Sender)
 {
   CNCDesigner->Mirror(MD_VERTICAL);
 }
 //---------------------------------------------------------------------------
+/// Edit mirror horizontal action event handler
 void __fastcall TMainForm::EditMirrorHExecute(TObject *Sender)
+/// Edit mirror action
 {
   CNCDesigner->Mirror(MD_HORIZONTAL);
 }
 //---------------------------------------------------------------------------
+/// Edit form paint event action
 void __fastcall TMainForm::FormPaint(TObject *Sender)
 {
   //CNCDesigner->Render();
 }
 //---------------------------------------------------------------------------
-
+/// View zoom in action event handler
 void __fastcall TMainForm::ViewZoomInExecute(TObject *Sender)
 {
   CNCDesigner->ZoomIn();
 }
 //---------------------------------------------------------------------------
-
+/// View zoom out action event handler
 void __fastcall TMainForm::ViewZoomOutExecute(TObject *Sender)
 {
   CNCDesigner->ZoomOut();
 }
 //---------------------------------------------------------------------------
+/// View zoom all action event handler
 void __fastcall TMainForm::ViewZoomAllExecute(TObject *Sender)
 {
   CNCDesigner->ZoomAll();
 }
 //---------------------------------------------------------------------------
-
+/// View grid action event handler
 void __fastcall TMainForm::ViewGridExecute(TObject *Sender)
 {
   CNCDesigner->ViewGrid(ViewGrid->Checked);
 }
 //---------------------------------------------------------------------------
-
+/// View ruler action event handler
 void __fastcall TMainForm::ViewRulerExecute(TObject *Sender)
 {
   CNCDesigner->ViewRuler(ViewRuler->Checked);
 }
 //---------------------------------------------------------------------------
-
+/// View numbers action event handler
 void __fastcall TMainForm::ViewNumbersExecute(TObject *Sender)
 {
   CNCDesigner->ViewNumbers(ViewNumbers->Checked);
 }
 //---------------------------------------------------------------------------
+/// View antialiasing action event handler
 void __fastcall TMainForm::ViewAntialiasingExecute(TObject *Sender)
 {
   CNCDesigner->SetAntialiasing(ViewAntialiasing->Checked);
 }
 //---------------------------------------------------------------------------
-
+/// Object DRV action event handler
 void __fastcall TMainForm::ObjectDRVExecute(TObject *Sender)
 {
   CNCDesigner->SetDesignAction(DA_DRV);
 }
 //---------------------------------------------------------------------------
+/// Object LINE action event handler
 void __fastcall TMainForm::ObjectLINExecute(TObject *Sender)
 {
   CNCDesigner->SetDesignAction(DA_LIN);
 }
 //---------------------------------------------------------------------------
+/// Object CW action event handler
 void __fastcall TMainForm::ObjectCWExecute(TObject *Sender)
 {
   CNCDesigner->SetDesignAction(DA_CW);
 }
 //---------------------------------------------------------------------------
+/// Object CCW action event handler
 void __fastcall TMainForm::ObjectCCWExecute(TObject *Sender)
 {
   CNCDesigner->SetDesignAction(DA_CCW);
 }
 //---------------------------------------------------------------------------
+/// ProjectTree - Change event handler
 void __fastcall TMainForm::ProjectTreeChange(TObject *Sender, TTreeNode *Node)
 {
   if(!Node) return;
@@ -303,6 +324,7 @@ void __fastcall TMainForm::ProjectTreeChange(TObject *Sender, TTreeNode *Node)
   }
 }
 //---------------------------------------------------------------------------
+/// CNCDesigner - design action event handler
 void __fastcall TMainForm::CNCDesignerDesignAction(int dAction)
 {
   if(dAction == DA_NONE) {
@@ -313,11 +335,13 @@ void __fastcall TMainForm::CNCDesignerDesignAction(int dAction)
   }
 }
 //---------------------------------------------------------------------------
+/// CNCDesigner - modify event handler
 void __fastcall TMainForm::CNCDesignerModify(bool modified)
 {
   FileSave->Enabled = modified;
 }
 //---------------------------------------------------------------------------
+/// CNCDesigner - st values event handler
 void __fastcall TMainForm::CNCDesignerSetValues(TObject *Sender)
 {
   TProgram *prog = CNCDesigner->Program;
@@ -348,7 +372,6 @@ void __fastcall TMainForm::CNCDesignerSetValues(TObject *Sender)
 	ObjectEditor->Strings->Add("X=" + FloatToStr(cod->X));
 	// ---------- Y ----------
 	ObjectEditor->Strings->Add("Y=" + FloatToStr(cod->Y));
-	//ObjectEditor->Refresh();
 	// ---------- R, OX, OY ----------
 	if(cod->G==G_CW || cod->G==G_CCW) {
 	  ObjectEditor->Strings->Add("R=" + FloatToStr(cod->R));
@@ -396,7 +419,6 @@ void __fastcall TMainForm::CNCDesignerSetValues(TObject *Sender)
 	ObjectEditor->Strings->Add("Nr=" + IntToStr(prog->Number));
 	ObjectEditor->Strings->Add("Rama=" + IntToStr(prog->Frame));
 	ObjectEditor->Strings->Add("Wymiary= ");
-	//ObjectEditor->ItemProps[ObjectEditor->Strings->IndexOfName("Nazwa")]->ReadOnly = true;
   }
   ObjectEditor->Refresh();
   ObjectEditor->Enabled = true;
@@ -404,11 +426,13 @@ void __fastcall TMainForm::CNCDesignerSetValues(TObject *Sender)
   UpdateCaption();
 }
 //---------------------------------------------------------------------------
+/// MainForm resize event handler
 void __fastcall TMainForm::FormResize(TObject *Sender)
 {
-  //InfoPanel->Width = Width - DockTabSet->MinClientRect().Width() - 50;
+  //
 }
 //---------------------------------------------------------------------------
+/// DockTabSet Change event handler
 void __fastcall TMainForm::DockTabSetChange(TObject *Sender, int NewTab,
 	  bool &AllowChange)
 {
@@ -426,11 +450,13 @@ void __fastcall TMainForm::DockTabSetChange(TObject *Sender, int NewTab,
   AllowChange = true;
 }
 //---------------------------------------------------------------------------
+/// Splitter1 Moved event handler
 void __fastcall TMainForm::Splitter1Moved(TObject *Sender)
 {
   CNCDesigner->Render();
 }
 //---------------------------------------------------------------------------
+/// MainForm CloseQuery event handler
 void __fastcall TMainForm::FormCloseQuery(TObject *Sender, bool &CanClose)
 {
   if(FileSave->Enabled) {
@@ -452,6 +478,7 @@ void __fastcall TMainForm::FormCloseQuery(TObject *Sender, bool &CanClose)
   }
 }
 //---------------------------------------------------------------------------
+/// Sets designer program
 void __fastcall TMainForm::SetDesigner(TProgram *Prog)
 {
   if(!Prog) {
@@ -477,6 +504,7 @@ void __fastcall TMainForm::SetDesigner(TProgram *Prog)
   UpdateCaption();
 }
 //---------------------------------------------------------------------------
+/// Update MainForm Caption
 void __fastcall TMainForm::UpdateCaption()
 {
   char buf[128];//XXX
@@ -506,11 +534,13 @@ void __fastcall TMainForm::UpdateCaption()
   }
 }
 //---------------------------------------------------------------------------
+/// MainForm close event
 void __fastcall TMainForm::FormClose(TObject *Sender, TCloseAction &Action)
 {
   SaveConfig();
 }
 //---------------------------------------------------------------------------
+/// Menu Konfiguracja -> Zmien event handler
 void __fastcall TMainForm::Zmie1Click(TObject *Sender)
 {
   OpenDialog->Filter = "MiteGL Projekt (*.mef)|*.mef";
@@ -544,7 +574,7 @@ void __fastcall TMainForm::Zmie1Click(TObject *Sender)
 	if(line.IsEmpty()) continue;
 	line.SetLength(7);
 	if(line == "Program") {
-	  if(Prog) ProgList->Add(Prog); // poprzedni dodaj do projektu
+	  if(Prog) ProgList->Add(Prog); // Prev add to project
 	  int numer = 0, rama = 0, uzywany = 0;
 	  if(MiteName == "mitegl")
 		sscanf(buf, "Program|%d|%d|%d|%s", &numer, &rama, &uzywany, str);
@@ -563,15 +593,10 @@ void __fastcall TMainForm::Zmie1Click(TObject *Sender)
 	sscanf(buf, "%d|%d|%d|%d|%d|%d|%d|%d|%d", &num[0], &num[1], &num[2],
 				   &num[3], &num[4], &num[5], &num[6], &num[7], &num[8]);
 	//---
-	  //if(num[0] == 4) num[0] = 0;
-	  //else if(num[0] == 3) num[0] = 1;
-	  //else if(num[0] == 2) num[0] = 2;
-	  //else if(num[0] == 1) num[0] = 3;
 	  if(MiteName == "mite")
 		num[0] = abs(4 - num[0]);
 	//---
 	TGCod *cod = new TGCod;
-	//memcpy(cod, num, sizeof(num));
 	cod->G = num[0];
 	cod->X = num[1];
 	cod->Y = num[2];
@@ -584,14 +609,14 @@ void __fastcall TMainForm::Zmie1Click(TObject *Sender)
 	cod->UpdateOXY();
 	Prog->Codes->Add(cod);
   }
-  if(Prog) ProgList->Add(Prog); // ostatni dodaj do projektu
+  if(Prog) ProgList->Add(Prog); // Last add to project
 
   ifs.close();
 
 
 
   //========================================================
-  //               Zapis do pliku ".xml"
+  //               Seve to XML file
   //========================================================
   SaveDialog->Filter = "CNC Edytor Projekt (*.cne)|*.cne";
   SaveDialog->DefaultExt = ".cne";
@@ -625,6 +650,7 @@ void __fastcall TMainForm::Zmie1Click(TObject *Sender)
   delete XMLDoc;
 }
 //---------------------------------------------------------------------------
+/// Project - new program action event handler
 void __fastcall TMainForm::ProjectNewProgramExecute(TObject *Sender)
 {
   TTreeNode *Node = ProjectTree->Selected;
@@ -640,6 +666,7 @@ void __fastcall TMainForm::ProjectNewProgramExecute(TObject *Sender)
   FileSave->Enabled = true;
 }
 //---------------------------------------------------------------------------
+/// Project - delete program action event handler
 void __fastcall TMainForm::ProjectDeleteProgramExecute(TObject *Sender)
 {
   TTreeNode *Node = ProjectTree->Selected;
@@ -654,6 +681,7 @@ void __fastcall TMainForm::ProjectDeleteProgramExecute(TObject *Sender)
   FileSave->Enabled = true;
 }
 //---------------------------------------------------------------------------
+/// ProjectPopUp Menu - popup event handler
 void __fastcall TMainForm::ProjectPopupMenuPopup(TObject *Sender)
 {
   TTreeNode *Node = ProjectTree->Selected;
@@ -672,6 +700,7 @@ void __fastcall TMainForm::ProjectPopupMenuPopup(TObject *Sender)
   }	
 }
 //---------------------------------------------------------------------------
+/// ProjectTree - editing event handler
 void __fastcall TMainForm::ProjectTreeEditing(TObject *Sender, TTreeNode *Node,
       bool &AllowEdit)
 {
@@ -679,6 +708,7 @@ void __fastcall TMainForm::ProjectTreeEditing(TObject *Sender, TTreeNode *Node,
   else AllowEdit = true;
 }
 //---------------------------------------------------------------------------
+/// ProjectTree - edited event handler
 void __fastcall TMainForm::ProjectTreeEdited(TObject *Sender, TTreeNode *Node,
 	  AnsiString &S)
 {
@@ -703,6 +733,7 @@ void __fastcall TMainForm::ProjectTreeEdited(TObject *Sender, TTreeNode *Node,
   FileSave->Enabled = true;
 }
 //---------------------------------------------------------------------------
+/// ObjectEditor - validate event handler
 void __fastcall TMainForm::ObjectEditorValidate(TObject *Sender, int ACol,
 	  int ARow, const AnsiString KeyName, const AnsiString KeyValue)
 {
@@ -750,7 +781,6 @@ void __fastcall TMainForm::ObjectEditorValidate(TObject *Sender, int ACol,
 	cod->SetY(StrToFloat(KeyValue));
 	break;
   case 'R' :
-	//cod->SetR(StrToFloat(KeyValue));
 	{
 		TList *Codes = CNCDesigner->Program->Codes;
 		for(int i=0; i<Codes->Count; i++) {
@@ -762,8 +792,6 @@ void __fastcall TMainForm::ObjectEditorValidate(TObject *Sender, int ACol,
 	}
 	break;
   case 'F' :
-//	if(KeyValue.IsEmpty()) cod->SetF(-1);
-//	else cod->SetF(StrToInt(KeyValue));
 	{
 		TList *Codes = CNCDesigner->Program->Codes;
 		for(int i=0; i<Codes->Count; i++) {
@@ -789,6 +817,7 @@ void __fastcall TMainForm::ObjectEditorValidate(TObject *Sender, int ACol,
   CNCDesigner->Render();
 }
 //---------------------------------------------------------------------------
+/// MainForm - show event handler
 void __fastcall TMainForm::FormShow(TObject *Sender)
 {
   CNCDesigner->InitOpenGL();
@@ -807,8 +836,6 @@ void __fastcall TMainForm::FormShow(TObject *Sender)
 
   LoadConfig();
 
-
-	//ShowMessage(System::ParamStr(0));
 	if(System::ParamCount() > 0) {
 		SetDesigner(0);
 		Screen->Cursor = crHourGlass;
@@ -818,7 +845,6 @@ void __fastcall TMainForm::FormShow(TObject *Sender)
 		FileSave->Enabled = false;
 		Screen->Cursor = crDefault;
 
-		// update RecentPopupMenu->Items
 		for(int i=0; i<RecentPopupMenu->Items->Count; i++) {
 			TMenuItem *item = RecentPopupMenu->Items->Items[i];
 			if(item->Caption == Project->FileName) {
@@ -831,10 +857,11 @@ void __fastcall TMainForm::FormShow(TObject *Sender)
 		item->AutoLineReduction = maManual;
 		item->Caption = Project->FileName;
 		item->OnClick = RecentItemClick;
-  		RecentPopupMenu->Items->Insert(0, item);
+		RecentPopupMenu->Items->Insert(0, item);
 	}
 }
 //---------------------------------------------------------------------------
+/// Load configuration from XML file
 void __fastcall TMainForm::LoadConfig()
 {
   AnsiString fname = ExtractFilePath(Application->ExeName) + "config.xml";
@@ -881,7 +908,6 @@ void __fastcall TMainForm::LoadConfig()
     RecentPopupMenu->Items->Add(item);
 	item->Caption = xml_node->Text;
 	item->OnClick = RecentItemClick;
-	//RecentPopupMenu->Items->Add(item);
 	xml_node = xml_node->NextSibling();
 	count++;
   }
@@ -889,6 +915,7 @@ void __fastcall TMainForm::LoadConfig()
   delete XMLDoc;
 }
 //---------------------------------------------------------------------------
+/// Save configuration to XML file
 void __fastcall TMainForm::SaveConfig()
 {
   TXMLDocument *XMLDoc = new TXMLDocument(this);
@@ -928,6 +955,7 @@ void __fastcall TMainForm::SaveConfig()
   delete XMLDoc;
 }
 //---------------------------------------------------------------------------
+/// RecentItem - click event handler
 void __fastcall TMainForm::RecentItemClick(TObject *Sender)
 {
   TMenuItem *mitem = (TMenuItem*)Sender;
@@ -957,26 +985,31 @@ void __fastcall TMainForm::RecentItemClick(TObject *Sender)
   RecentPopupMenu->Items->Insert(0, item);
 }
 //---------------------------------------------------------------------------
+/// File - export action event handler
 void __fastcall TMainForm::FileExportExecute(TObject *Sender)
 {
 //
 }
 //---------------------------------------------------------------------------
+/// Edit - rotate any angle action event handler
 void __fastcall TMainForm::EditRotateAnyExecute(TObject *Sender)
 {
   CNCDesigner->RotateAngle();
 }
 //---------------------------------------------------------------------------
+/// View - draw path action event handler
 void __fastcall TMainForm::ViewDrvPathExecute(TObject *Sender)
 {
 	CNCDesigner->ViewDrvPath(ViewDrvPath->Checked);
 }
 //---------------------------------------------------------------------------
+/// View - draw path action event handler
 void __fastcall TMainForm::EditMoveToZeroExecute(TObject *Sender)
 {
 	CNCDesigner->MoveToZero();
 }
 //---------------------------------------------------------------------------
+/// Edit - rescale action event handler
 void __fastcall TMainForm::EditRescaleExecute(TObject *Sender)
 {
 	 CNCDesigner->Rescale();
