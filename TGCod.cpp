@@ -11,6 +11,7 @@
 
 #pragma package(smart_init)
 //---------------------------------------------------------------------------
+/// Constructor
 __fastcall TGCod::TGCod()
 {
   G = G_NONE;
@@ -29,15 +30,12 @@ __fastcall TGCod::TGCod()
   ID = -1;
 }
 //---------------------------------------------------------------------------
+/// Destructor
 __fastcall TGCod::~TGCod()
 {
-  //TCod *_prev = Prev;
-  //TCod *_next = Next;
-  //if(_next) _next->Prev = _prev;
-  //if(_prev) _prev->Next = _next;
-  //if(_next) _next->UpdateOXY();
 }
 //---------------------------------------------------------------------------
+/// Constructor copying
 __fastcall TGCod::TGCod(const TGCod &c)
 {
   G = c.G;
@@ -48,7 +46,7 @@ __fastcall TGCod::TGCod(const TGCod &c)
   M = c.M;
   T = c.T;
 
-  State = c.State;//Selected = c.Selected;
+  State = c.State;
   Prev = c.Prev;
   Next = c.Next;
   OX = c.OX;
@@ -57,6 +55,11 @@ __fastcall TGCod::TGCod(const TGCod &c)
   ID = c.ID;
 }
 //---------------------------------------------------------------------------
+/// \brief Constructor Creates a TGCod with params.
+/// \param g - type of cod
+/// \param x - X coordinate
+/// \param y - Y coordinate
+/// \param r - radius
 __fastcall TGCod::TGCod(int g, float x, float y, float r)
 {
   G = g;
@@ -75,6 +78,11 @@ __fastcall TGCod::TGCod(int g, float x, float y, float r)
   ID = -1;
 }
 //---------------------------------------------------------------------------
+/// \brief Sets the params.
+/// \param g - type of GCod
+/// \param x - X coordinate
+/// \param y - Y coordinate
+/// \param r - radius
 void __fastcall TGCod::Set(int g, float x, float y, float r)
 {
   G = g;
@@ -84,27 +92,37 @@ void __fastcall TGCod::Set(int g, float x, float y, float r)
   UpdateOXY();
 }
 //---------------------------------------------------------------------------
+/// \brief Sets the type of GCod
+/// \param g - type of GCod
 void __fastcall TGCod::SetG(int g)
 {
   G = g;
   UpdateOXY();
 }
 //---------------------------------------------------------------------------
+/// \brief Sets the F param
+/// \param f - GCod F
 void __fastcall TGCod::SetF(int f)
 {
   F = f;
 }
 //---------------------------------------------------------------------------
+/// \brief Sets the M param
+/// \param m - GCod M
 void __fastcall TGCod::SetM(int m)
 {
   M = m;
 }
 //---------------------------------------------------------------------------
+/// \brief Sets the T param
+/// \param t - GCod T
 void __fastcall TGCod::SetT(int t)
 {
   T = t;
 }
 //---------------------------------------------------------------------------
+/// \brief Sets the GCod radius
+/// \param r - GCod R
 void __fastcall TGCod::SetR(float r)
 {
   if(G != G_CW && G != G_CCW) return;
@@ -113,40 +131,26 @@ void __fastcall TGCod::SetR(float r)
   if(Next) Next->UpdateOXY();
 }
 //---------------------------------------------------------------------------
+/// \brief Sets the X coordinate
+/// \param x - GCod X
 void __fastcall TGCod::SetX(float x)
 {
   X = x;
   UpdateOXY();
   if(Next) Next->UpdateOXY();
-
-//	if(Prev) {
-//		if(fabs(x - Prev->X) < 1 && Prev) {
-//			if(Prev->X < x) Prev->X -= 1;
-//			else Prev->X += 1;
-//		}
-//	}
-//	X = x;
-//	UpdateOXY();
-//	if(Next) Next->UpdateOXY();
 }
 //---------------------------------------------------------------------------
+/// \brief Sets the Y coordinate
+/// \param y - GCod Y
 void __fastcall TGCod::SetY(float y)
 {
   Y = y;
   UpdateOXY();
   if(Next) Next->UpdateOXY();
-
-//	if(Prev) {
-//		if(fabs(y - Prev->Y) < 1) {
-//			if(Prev->Y < y) Prev->Y -= 1;
-//			else Prev->Y += 1;
-//		}
-//	}
-//	Y = y;
-//	UpdateOXY();
-//	if(Next) Next->UpdateOXY();
 }
 //---------------------------------------------------------------------------
+/// \brief Sets the X coordinate
+/// \param x - GCod X
 void __fastcall TGCod::UpdateOXY()
 {
   if((G != G_CW && G != G_CCW) || R==0) return;
@@ -160,48 +164,33 @@ void __fastcall TGCod::UpdateOXY()
   double sx = bx>ax  ?  (ax+((bx-ax)/2))  :  (bx+((ax-bx)/2));
   double sy = by>ay  ?  (ay+((by-ay)/2))  :  (by+((ay-by)/2));
 
-  //---------------------------------------------------------------
-  // dlugosc odcinka ab
-  //---------------------------------------------------------------
+  // the length of the section ab
   double ab = sqrt( (ax-bx)*(ax-bx) + (ay-by)*(ay-by) );
   double ab05 = ab/2;
-  //---- jesli okaze sie ze promien jest za maly
+  // if it turns out that the radius is too small
   if(r < ab05) {
-	R = ab05;//+1;
+	R = ab05;
     r  = fabs(R);
   }
 
-  //---------------------------------------------------------------
-  // wysokosc trojkata utworzonego z odcinka ab i promienia r (odcinki oa i ob)
-  //---------------------------------------------------------------
-	//double h = r > ab05 ? sqrt( (r*r) - (ab05*ab05) ) : 0;
-	//double h = sqrt( (r*r) - (ab05*ab05) ); // 26.03.2014
-	double h = r > ab05 ? sqrt( (r*r) - (ab05*ab05) ) : 0; // 04.12.2014
+  // the height of the triangle formed from the section ab
+  // and radius r (segments oa and ob)
+  double h = r > ab05 ? sqrt( (r*r) - (ab05*ab05) ) : 0; // 04.12.2014
 
-  //---------------------------------------------------------------
-  // kat alpha - kata nachylenia odcinka ab do osi x
-  //---------------------------------------------------------------
+  // alpha angle - angle inclination of the segment ab to the x axis
   double b = fabs( bx - ax );
   double cos_alpha = b / ab;
 
-  //---------------------------------------------------------------
-  // kat "beta" - kat nachylenia promienia R do osi x wynosi sin_alpha
-  //---------------------------------------------------------------
+  // Beta angle - the angle of inclination of the radius R to the x axis is sin_alpha
   double beta = RadToDeg( ArcSin(cos_alpha) );
 
-  //---------------------------------------------------------------
-  // "c" - odleglosc w osi x srodka okregu O od punktu S (srodka odcinka ab)
-  //---------------------------------------------------------------
+  // c - odleglosc w osi x srodka okregu O od punktu S (srodka odcinka ab)
   double c = h * cos( DegToRad(beta) );
 
-  //---------------------------------------------------------------
-  // "d" - odleglosc w osi y srodka okregu O od punktu S (srodka odcinka ab)
-  //---------------------------------------------------------------
+  // d - distance in the center of the circle O from the point S (the center of the segment ab)
   double d = h * sin( DegToRad(beta) );
 
-  //---------------------------------------------------------------
-  // wspolrzedne punktu O1 i O2 - srodka okregu
-  //---------------------------------------------------------------
+  // coordinate points O1 and O2 - the center of the circle
   double ox1 =   ay > by  ?  sx - c  :  sx + c;
   double oy1 =   ax < bx  ?  sy - d  :  sy + d;
   double ox2 =  ox1 > sx  ?  sx - c  :  sx + c;
@@ -224,4 +213,4 @@ void __fastcall TGCod::UpdateOXY()
     }
   }
 }
-//---------------------------------------------------------------------------//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------

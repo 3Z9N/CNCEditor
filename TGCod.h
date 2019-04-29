@@ -10,26 +10,12 @@ enum MCOD_TYPE { M_NONE=-1, M_END=2, M_SPINDLE_CW=3, M_SPINDLE_CCW=4,
 				 M_SPINDLE_STOP=5, M_TOOL_CHANGE=6 };
 enum GCOD_STATE { csNormal=0, csSelected=1, csDragged=2, csLocked=4 };
 
-//---------------------------------------------------------------------------
-//  klasa dla operacji plikowyxh
-//---------------------------------------------------------------------------
-class TGCodBase
-{
-  public:
-	int   G;
-	float X;
-	float Y;
-	float R;
-	int   F;
-	int   M;
-	int   T;
-};
 
 //---------------------------------------------------------------------------
  class TGCod
 {
   public:
-	// standardowe dane = TGCodBase
+	// GCod data
 	int   G;
 	float X;
 	float Y;
@@ -38,7 +24,7 @@ class TGCodBase
 	int   M;
 	int   T;
 
-	// dodatkowe dane
+	// other
 	float OX;
 	float OY;
 	int Return;

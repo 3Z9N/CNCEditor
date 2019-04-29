@@ -20,11 +20,22 @@ int ilosc_igiel = 1;
 int odleglosc_igiel = 300;
 int rozstaw_rzedow = 225;
 //---------------------------------------------------------------------------
+/// Constructor
 __fastcall TPrintForm::TPrintForm(TComponent* Owner)
         : TForm(Owner)
 {
 }
 //---------------------------------------------------------------------------
+/// \brief Draw arc
+/// \param Canvas - drawing VCL canvas
+/// \param x1 - begin X coordinate
+/// \param y1 - begin Y coordinate
+/// \param x2 - end X coordinate
+/// \param y2 - end Y coordinate
+/// \param ox - center X arc coordinate
+/// \param oy - center Y arc coordinate
+/// \param r - radius
+/// \param dir - direction (CW or CCW)
 void __fastcall TPrintForm::DrawArc(TCanvas *Canvas, double x1, double y1, double x2, double y2,
                                     double ox, double oy, double r, int dir)
 {
@@ -82,11 +93,13 @@ void __fastcall TPrintForm::DrawArc(TCanvas *Canvas, double x1, double y1, doubl
   Canvas->LineTo(x2, y2);
 }
 //---------------------------------------------------------------------------
+/// ToolButton1 click evevt handler
 void __fastcall TPrintForm::ToolButton1Click(TObject *Sender)
 {
   Close();
 }
 //---------------------------------------------------------------------------
+/// Form resize evevt handler
 void __fastcall TPrintForm::FormResize(TObject *Sender)
 {
   Panel2->Height = Panel1->Height - 20;
@@ -95,110 +108,9 @@ void __fastcall TPrintForm::FormResize(TObject *Sender)
   Panel2->Left = (Panel1->Width - Panel2->Width) / 2;
 }
 //---------------------------------------------------------------------------
+/// Export to JPG file
 void __fastcall TPrintForm::ExportToJPEG()
 {
-/*
-  Graphics::TBitmap *Image = new Graphics::TBitmap;
-  Image->Monochrome = true;
-  double old_skala = skala;
-  //int old_margin = margin;
-  //margin = 50;
-  //double w = int_x + 2*margin;
-  //double h = int_y + 2*margin;
-
-
-  String query = InputBox("CNCEditor", "Podaj skalê: 1/... ", "1");
-  int tmp = StrToInt(query);//InputBox("mite", "Podaj skalê: 1/... ", "1"));
-  skala = tmp > 0 ? (double)tmp : 2.5;
-  //margin = margin / skala;
-
-
-  //print_w = Image->Width;
-  //print_h = Image->Height;
-  //Image->Transparent = true;
-  //print_canvas = Image->Canvas;
-  Image->Canvas->Pen->Width = 2;
-
-
-
-  if(!MainForm->CurrProg) return;
-  TList *Codes = MainForm->CurrProg->Codes;
-  maxx = -3000;
-  maxy = -3000;
-  for(int i=0; i<Codes->Count; i++) {
-	TGCod *cod = (TGCod*)Codes->Items[i];
-	if(cod->G == G_DRV) continue;
-    if(maxx < cod->X) maxx = cod->X;
-    if(maxy < cod->Y) maxy = cod->Y;
-  }
-
-  Image->Width = (maxx + 20) / skala;
-  Image->Height = (maxy + 20) / skala;
-
-  //double skalax, skalay;
-  //skalax = (Box->Width - 20) / maxx;
-  //skalay = (Box->Height - 20) / maxy;
-
-  offx = (Image->Width - (maxx*skala)) / 2;
-  offy = (Image->Height - (maxy*skala)) / 2;
-  //===========================================
-
-  double x1, y1, x2, y2, ox, oy, r;
-  //TList *Codes = MainForm->CurrProg->Codes;
-  Image->Canvas->FillRect(TRect(0, 0, Image->Width, Image->Height));
-  //Box->Canvas->Pen->Width = 2;
-
-  for(int i=0; i<Codes->Count; i++) {
-	TGCod *cod = (TGCod*)Codes->Items[i];
-    if(cod->Prev) {
-      x1 = cod->Prev->X * skala + offx;
-	  y1 = Image->Height - (cod->Prev->Y * skala + offy);
-    }
-    x2 = cod->X * skala + offx;
-	y2 = Image->Height - (cod->Y * skala + offy);
-    ox = cod->OX * skala + offx;
-	oy = Image->Height - (cod->OY * skala + offy);
-    r = cod->R * skala;
-
-    switch(cod->G) {
-	  case G_DRV:
-		Image->Canvas->MoveTo(x2, y2);
-        break;
-
-	  case G_LIN:
-		Image->Canvas->LineTo(x2, y2);
-        break;
-
-	  case G_CW:
-		DrawArc(Image->Canvas, x1, y1, x2, y2, ox, oy, r, G_CCW);
-        break;
-
-	  case G_CCW:
-        DrawArc(Image->Canvas, x1, y1, x2, y2, ox, oy, r, G_CW);
-        break;
-	}
-  }
-
-
-
-	skala = old_skala;
-
-	TJPEGImage *jp = new TJPEGImage();
-	try
-	{
-		jp->Assign(Image);
-		jp->Smoothing = true;
-		jp->SaveToFile("d:\\print.jpg");
-	}
-	__finally
-	{
-		delete jp;
-	}
-	delete Image;
-*/
-
-
-  //===========================================
   if(!MainForm->CurrProg) return;
   TList *Codes = MainForm->CurrProg->Codes;
 
@@ -209,9 +121,7 @@ void __fastcall TPrintForm::ExportToJPEG()
   double margin = 50.0;
 
   String query = InputBox("CNCEditor", "Podaj skalê: 1/... ", "5");
-  int tmp = StrToInt(query);//InputBox("mite", "Podaj skalê: 1/... ", "1"));
-  //skala = tmp > 0 ? (double)tmp : 2.5;
-
+  int tmp = StrToInt(query);
 
   maxx = -3000;
   maxy = -3000;
@@ -245,8 +155,7 @@ void __fastcall TPrintForm::ExportToJPEG()
   //===========================================
 
   double x1, y1, x2, y2, ox, oy, r;
-  //TList *Codes = MainForm->CurrProg->Codes;
-  Image->Canvas->FillRect(TRect(0, 0, Image->Width, Image->Height));//(Image->ClientRect);
+  Image->Canvas->FillRect(TRect(0, 0, Image->Width, Image->Height));
   Image->Canvas->Pen->Width = 1;
 
   for(int k=0; k<ilosc_igiel; k++) {
@@ -264,7 +173,7 @@ void __fastcall TPrintForm::ExportToJPEG()
 	oy = Image->Height - (cod->OY * skala + offy);
 	r = cod->R * skala;
 
-	// rozstaw rzedow
+	// row spacing
 	if(k%2 == 0) {
 		double fr = (double)rozstaw_rzedow * skala;
 		y1 -= fr;
@@ -303,7 +212,7 @@ void __fastcall TPrintForm::ExportToJPEG()
 
 			jp->Assign(Image);
 			jp->Smoothing = true;
-			jp->SaveToFile(SaveDialog->FileName);//"d:\\print.jpg");
+			jp->SaveToFile(SaveDialog->FileName);
 		}
 	}
 	__finally
@@ -313,6 +222,7 @@ void __fastcall TPrintForm::ExportToJPEG()
 	delete Image;
 }
 //---------------------------------------------------------------------------
+/// Box paint event handler
 void __fastcall TPrintForm::BoxPaint(TObject *Sender)
 {
   if(!MainForm->CurrProg) return;
@@ -340,13 +250,11 @@ void __fastcall TPrintForm::BoxPaint(TObject *Sender)
   if(ilosc_igiel > 1) {
 	  TGCod *cod = (TGCod*)Codes->Items[0];
 	  offx -= (cod->X - odleglosc_igiel/2) * skala;
-	  //offx -= (cod->X) * skala;
   }
   offy = (Box->Height - (maxy*skala)) / 2;
   //===========================================
 
   double x1, y1, x2, y2, ox, oy, r;
-  //TList *Codes = MainForm->CurrProg->Codes;
   Box->Canvas->FillRect(Box->ClientRect);
   Box->Canvas->Pen->Width = 2;
 
@@ -366,7 +274,7 @@ void __fastcall TPrintForm::BoxPaint(TObject *Sender)
 	oy = Box->Height - (cod->OY * skala + offy);
 	r = cod->R * skala;
 
-	// rozstaw rzedow
+	// row spacing
 	if(k%2 == 0) {
 		double fr = (double)rozstaw_rzedow * skala;
 		y1 -= fr;
@@ -394,17 +302,11 @@ void __fastcall TPrintForm::BoxPaint(TObject *Sender)
   }
 	offx += (double)odleglosc_igiel * skala;
   }  // for(k...)
-
-  //Box->Canvas->TextOut(20, 20, "offx = " + String(offx));
-  //Box->Canvas->TextOut(20, 40, "offy = " + String(offy));
-  //Box->Canvas->TextOut(20, 60, "maxx = " + String(maxx));
 }
 //---------------------------------------------------------------------------
+/// ToolButton2 click event handler
 void __fastcall TPrintForm::ToolButton2Click(TObject *Sender)
 {
-	//Graphics::TBitmap *Image = new Graphics::TBitmap;
-	//Image->Monochrome = true;
-
   if(!MainForm->PrintDialog->Execute()) return;
 
 
@@ -440,7 +342,6 @@ void __fastcall TPrintForm::ToolButton2Click(TObject *Sender)
   //===========================================
 
   double x1, y1, x2, y2, ox, oy, r;
-  //Box->Canvas->FillRect(Box->ClientRect);
 
   Printer()->BeginDoc();
   Printer()->Canvas->Pen->Width = 4;
@@ -459,7 +360,7 @@ void __fastcall TPrintForm::ToolButton2Click(TObject *Sender)
     oy = Printer()->PageHeight - (cod->OY * skala + offy);
 	r = cod->R * skala;
 
-	// rozstaw rzedow
+	// row spacing
 	if(k%2 == 0) {
 		double fr = (double)rozstaw_rzedow * skala;
 		y1 -= fr;
@@ -490,78 +391,35 @@ void __fastcall TPrintForm::ToolButton2Click(TObject *Sender)
   }  // for(k...)
 
   Printer()->EndDoc();
-
-
-
-/*
-
-  // maksymalne x i y dla interpolacji;
-  int int_x=0, int_y=0;
-  for(int i=0; i<codes->Count; i++) {
-    TCod *cod = (TCod*)codes->Items[i];
-    if(cod->Cod == DRV) continue;
-    if(cod->X > int_x) int_x = cod->X;
-    if(cod->Y > int_y) int_y = cod->Y;
-  }
-
-  //double w = Printer()->PageWidth*0.8;
-  //double h = Printer()->PageHeight*0.8;
-  double old_skala = skala;
-  int old_margin = margin;
-  float skala_x = (float)int_x / (float)(Printer()->PageWidth*0.8);
-  float skala_y = (float)int_y / (float)(Printer()->PageHeight*0.8);
-  skala = skala_x > skala_y ? skala_x : skala_y;
-  margin = (Printer()->PageWidth*0.1);
-
-  printing = true;
-  print_w = Printer()->PageWidth;
-  print_h = Printer()->PageHeight;
-  print_canvas = Printer()->Canvas;
-  Printer()->BeginDoc();
-  print_canvas->Pen->Width = 4;
-  print_canvas->Font->Size = 11;
-
-  int th = print_canvas->TextHeight("Yy");
-  char buf[1024];
-  print_canvas->TextOut(margin, margin/2, curr_prog->Nazwa);
-  sprintf(buf, "Program: %d     Rama: %d     Wymiary: %d / %d",
-          curr_prog->Numer, curr_prog->Rama, int_x, int_y);
-  print_canvas->TextOut(margin, margin/2 + (th*1.5), buf);
-  for(int i=0; i<codes->Count; i++) {
-    TCod *cod = (TCod*)codes->Items[i];
-    PaintCod(cod);
-  }
-  Printer()->EndDoc();
-  skala = old_skala;
-  margin = old_margin;
-  printing = false;
-*/
-
 }
 //---------------------------------------------------------------------------
+/// ToolButton3 click event handler
 void __fastcall TPrintForm::ToolButton3Click(TObject *Sender)
 {
 	ExportToJPEG();
 }
 //---------------------------------------------------------------------------
+/// EIlosc change event handler
 void __fastcall TPrintForm::EIloscChange(TObject *Sender)
 {
 	ilosc_igiel = StrToInt(EIlosc->Text);
 	Box->Repaint();
 }
 //---------------------------------------------------------------------------
+/// EOdleglosc change event handler
 void __fastcall TPrintForm::EOdlegloscChange(TObject *Sender)
 {
 	odleglosc_igiel = StrToInt(EOdleglosc->Text);
 	Box->Repaint();
 }
 //---------------------------------------------------------------------------
+/// Form show event handler
 void __fastcall TPrintForm::FormShow(TObject *Sender)
 {
 	ERozstaw->Text = IntToStr(rozstaw_rzedow);
 }
 //---------------------------------------------------------------------------
-
+/// ERozstaw change event handler
 void __fastcall TPrintForm::ERozstawChange(TObject *Sender)
 {
 	rozstaw_rzedow = StrToInt(ERozstaw->Text);

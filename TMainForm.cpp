@@ -6,7 +6,6 @@
 #include "TMainForm.h"
 #include "TGCod.h"
 #include "TProgram.h"
-#include "TOptionsForm.h"
 #include "TPrintForm.h"
 
 #include <math.hpp>
@@ -25,7 +24,6 @@ int new_suffix = 1;
 #pragma package(smart_init)
 #pragma link "TCNCDesigner"
 #pragma link "cspin"
-#pragma link "TCodeEditor"
 #pragma resource "*.dfm"
 TMainForm *MainForm;
 

@@ -74,7 +74,7 @@ array explode(const char* s, char separator)
   return v;
 }
 //---------------------------------------------------------------------------
-// Constructor
+/// Constructor
 __fastcall TCNCDesigner::TCNCDesigner(TComponent* Owner)
 	: TFrame(Owner)
 {
@@ -565,7 +565,7 @@ void __fastcall TCNCDesigner::DrawCodLIN(TGCod *cod)
   Draw2DText(IntToStr(Program->Codes->IndexOf(cod)));
 }
 //---------------------------------------------------------------------------
-// Draw OpenGL scene with render mode
+/// Draw OpenGL scene with render mode
 void __fastcall TCNCDesigner::DrawDesignerScene(GLenum RenderMode)
 {
   if(antialiasing) {

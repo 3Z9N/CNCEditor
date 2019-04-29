@@ -1,8 +1,5 @@
-<h2>CNC Editor</h2>
-Created by: Krzysztof Przybylski, 3Z9N
-
-<h4>[ENG]</h4>
-The application is used to create sewing programs for CNC sewing machines.
-
-<h4>[PL]</h4>
-Aplikacja służy do tworzenia programów szycia dla maszyn szyjących CNC.
+<h2>CNCEditor</h2>
+<h4>CNCEditor - CAD program for creating sewing programs for automatic sewing machines.</h4>
+<h4>Created by: Krzysztof Przybylski</h4>
+The program was written in the Borland C ++ Builder development environment.
+The Debug_Build directory contains a compiled executable program ready for use in Windows.

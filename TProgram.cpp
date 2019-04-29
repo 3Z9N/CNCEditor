@@ -16,6 +16,7 @@
 
 unsigned int TProgram::UndoLimit = 10;
 //---------------------------------------------------------------------------
+/// Constructor
 TProgram::TProgram()
 {
   Name = "nowy";
@@ -28,6 +29,7 @@ TProgram::TProgram()
   undo_deque.clear();
 }
 //---------------------------------------------------------------------------
+/// Constructor with param name
 TProgram::TProgram(AnsiString name)
 {
   Name = name;
@@ -41,6 +43,7 @@ TProgram::TProgram(AnsiString name)
   undo_deque.clear();
 }
 //---------------------------------------------------------------------------
+/// Destructor
 TProgram::~TProgram()
 {
   if(Codes) {
@@ -53,11 +56,13 @@ TProgram::~TProgram()
   }
 }
 //---------------------------------------------------------------------------
+/// Clears undo_deque
 void __fastcall TProgram::ClearUndo()
 {
   undo_deque.clear();
 }
 //---------------------------------------------------------------------------
+// Returns table of codes
 const AnsiString __fastcall TProgram::CodeTable()
 {
   AnsiString Code = "";
@@ -75,6 +80,7 @@ const AnsiString __fastcall TProgram::CodeTable()
   return Code;
 }
 //---------------------------------------------------------------------------
+// Returns the GCod sequence
 const AnsiString __fastcall TProgram::GCode()
 {
   AnsiString Code = "";
@@ -95,7 +101,6 @@ const AnsiString __fastcall TProgram::GCode()
 	if(C->Y != _y) Code += " Y" + String(C->Y);
 	if(C->G==G_CW || C->G==G_CCW) Code += " R" + String(C->R);
 	if(C->G!=G_DRV && C->Prev && C->Prev->G==G_DRV) Code += " M03";
-	//else if(C->M == 11) Line += " M05";
 	else if(C->G>G_DRV && C->Next && C->Next->G==G_DRV) Code += " M05";
 	Code += "\n";
 	_g = C->G;
@@ -107,6 +112,7 @@ const AnsiString __fastcall TProgram::GCode()
   return Code;
 }
 //---------------------------------------------------------------------------
+/// Loads the table of codes
 void __fastcall TProgram::LoadCodeTable(AnsiString code)
 {
   char buf[256];
@@ -134,6 +140,7 @@ void __fastcall TProgram::LoadCodeTable(AnsiString code)
   Loaded = true;
 }
 //---------------------------------------------------------------------------
+/// Load cod form GCod sequence
 void __fastcall TProgram::LoadGCode(const char *code)
 {
   std::istrstream iss(code);
@@ -152,7 +159,7 @@ void __fastcall TProgram::LoadGCode(const char *code)
 	if(s.empty()) continue;
 
 	if(!prog) {
-	  if(s == "%") {  // pocz¹tek programu
+	  if(s == "%") {  // begin of program
 		prog = true;
 		s = "";
 		iss >> s;
@@ -161,8 +168,8 @@ void __fastcall TProgram::LoadGCode(const char *code)
 	  continue;
 	}
 
-	if(s[0] == 'N') { // nowy gcod
-	  if(cod) {       // dodaj do listy ostatnio utworzony
+	if(s[0] == 'N') { // new gcod
+	  if(cod) {       // add last created cod
 		if(G == 1000 || G == G_NONE) {
 		  if(M==6) Frame = T;
 		  R=0, F=M_NONE, M=M_NONE, T=M_NONE;
@@ -217,8 +224,8 @@ void __fastcall TProgram::LoadGCode(const char *code)
   }
   Loaded = true;
 
-  if(cod) {   // dodaj do listy ostatnio utworzony
-	if(M == 2) {  // koniec programu
+  if(cod) {   // // add last created cod
+	if(M == 2) {  // end of program
 	  delete cod;
 	  return;
 	}
@@ -239,6 +246,7 @@ void __fastcall TProgram::LoadGCode(const char *code)
   }
 }
 //---------------------------------------------------------------------------
+/// Loads undo
 void __fastcall TProgram::LoadUndo()
 {
   if(!undo_deque.size()) return;
@@ -247,12 +255,14 @@ void __fastcall TProgram::LoadUndo()
   undo_deque.pop_front();
 }
 //---------------------------------------------------------------------------
+/// Saves undo
 void __fastcall TProgram::SaveUndo()
 {
   undo_deque.push_front(CodeTable());
   if(undo_deque.size() > UndoLimit) undo_deque.pop_back();
 }
 //---------------------------------------------------------------------------
+/// Returns count of undos
 int __fastcall TProgram::UndoCount()
 {
   return undo_deque.size();

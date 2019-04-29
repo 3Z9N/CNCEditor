@@ -33,12 +33,6 @@ TProject::~TProject()
 {
   delete DeleteList;
   if(Root) delete Root;
-//  for(int i=0; i<Root->Count; i++) {
-//	TProgram *Prog = (TProgram*)Root->Item[i]->Data;
-//	delete Prog;
-//  }
-//  if(Root) TreeView->Items->Delete(Root);
-//  TreeView->Items->Clear();
 }
 //---------------------------------------------------------------------------
 TTreeNode* __fastcall TProject::Add(TProgram* prog)
@@ -81,7 +75,6 @@ void __fastcall TProject::Load()
   XMLDoc->FileName = FileName;
   XMLDoc->Active = true;
 
-  //TreeView->Enabled = false;
   TreeView->Hide();
   Root->DeleteChildren();
   Root->Text = Name();
@@ -144,7 +137,7 @@ void __fastcall TProject::Save()
 	code->Text = Prog->CodeTable();
   }
 
-  XMLDoc->SaveToFile(FileName);//"e:\\test.xml");
+  XMLDoc->SaveToFile(FileName);
   XMLDoc->Active   = false;
   delete XMLDoc;
   Modified = false;
@@ -175,7 +168,7 @@ void __fastcall TProject::SaveToFiles()
 	code->Text = Prog->CodeTable();
 
 	AnsiString fname = "Programy\\" + Prog->Name + ".cne";
-	XMLDoc->SaveToFile(fname);//"e:\\test.xml");
+	XMLDoc->SaveToFile(fname);
 	XMLDoc->Active   = false;
     delete XMLDoc;
   }
@@ -189,21 +182,6 @@ void __fastcall TProject::SaveToFiles()
 	Root->DeleteChildren();
 	Root->Text = Name();
 
-	/////////////////////////////////
-	/*
-	while(xml_prog) {
-		TProgram *Prog = new TProgram(xml_prog->GetAttribute("name"));
-		Prog->Number = xml_prog->GetAttribute("number");
-		Prog->Frame = xml_prog->GetAttribute("frame");
-		Prog->LoadCodeTable(xml_prog->ChildValues["code"]);
-		Prog->New = false;
-		Add(Prog);
-		xml_prog = xml_prog->NextSibling();
-	}
-	*/
-
-
-
 	TProgram *Prog = 0;
 	std::ifstream ifs(FileName.c_str());
 	char buf[1024];
@@ -213,7 +191,6 @@ void __fastcall TProject::SaveToFiles()
 	AnsiString Code;
 	memset(buf, 0, sizeof(buf));
 	memset(str, 0, sizeof(buf));
-	//ifs.getline(buf, sizeof(buf));
 	ifs >> buf;
 	ifs >> str;
 	MiteName = AnsiString(buf).LowerCase();
@@ -231,7 +208,7 @@ void __fastcall TProject::SaveToFiles()
 			if(Prog) {
 				Prog->LoadCodeTable(Code);
 				Prog->New = false;
-				Add(Prog); // poprzedni dodaj do projektu
+				Add(Prog); // previous add to the project
 			}
 			int numer = 0, rama = 0, uzywany = 0;
 			if(MiteName == "mitegl")
@@ -240,7 +217,6 @@ void __fastcall TProject::SaveToFiles()
 				sscanf(buf, "Program|%d|%d|%s", &numer, &rama, str);
 			line = buf;
 			int pos = line.Pos(str);
-			//Prog = new TProgram(buf+pos-1, numer, rama, uzywany);
 			Prog = new TProgram(buf+pos-1);
 			Prog->Number = numer;
 			Prog->Frame = rama;
@@ -264,12 +240,11 @@ void __fastcall TProject::SaveToFiles()
 		Code += String(num[7]) + "|";  // M
 		Code += String(num[8]) + ";";  // return
 	}
-	if(Prog) {  // ostatni dodaj do projektu
+	if(Prog) {  // last add to the project
 		Prog->LoadCodeTable(Code);
 		Prog->New = false;
 		Add(Prog);
 	}
-	/////////////////////////////////
   
 	Root->Expand(true);
 	Root->AlphaSort(true);
